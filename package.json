@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -43,6 +43,7 @@
     "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.511.0",
     "next": "15.3.3",
+    "npm-check-updates": "^18.0.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.0",
