@@ -1,6 +1,7 @@
 export interface Tier {
   name: string;
-  id: 'starter' | 'pro' | 'advanced';
+  id: 'silver';
+  // id: 'starter' | 'pro' | 'advanced';
   icon: string;
   description: string;
   features: string[];
