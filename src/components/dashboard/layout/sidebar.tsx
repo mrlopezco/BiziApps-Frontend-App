@@ -1,40 +1,45 @@
-'use client';
+"use client"
 
-import { Album, CreditCard, Home } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { Album, CreditCard, Home, User } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 const sidebarItems = [
   {
-    title: 'Dashboard',
+    title: "Dashboard",
     icon: <Home className="h-6 w-6" />,
-    href: '/dashboard',
+    href: "/dashboard",
   },
   {
-    title: 'Subscriptions',
+    title: "Profile",
+    icon: <User className="h-6 w-6" />,
+    href: "/profile",
+  },
+  {
+    title: "Subscriptions",
     icon: <Album className="h-6 w-6" />,
-    href: '/dashboard/subscriptions',
+    href: "/dashboard/subscriptions",
   },
   {
-    title: 'Payments',
+    title: "Payments",
     icon: <CreditCard className="h-6 w-6" />,
-    href: '/dashboard/payments',
+    href: "/dashboard/payments",
   },
-];
+]
 
 export function Sidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname()
   return (
     <nav className="flex flex-col grow justify-between items-start px-2 text-sm font-medium lg:px-4">
-      <div className={'w-full'}>
+      <div className={"w-full"}>
         {sidebarItems.map((item) => (
           <Link
             key={item.title}
             href={item.href}
-            className={cn('flex items-center text-base gap-3 px-4 py-3 rounded-xxs dashboard-sidebar-items', {
-              'dashboard-sidebar-items-active':
-                item.href === '/dashboard' ? pathname === item.href : pathname.includes(item.href),
+            className={cn("flex items-center text-base gap-3 px-4 py-3 rounded-xxs dashboard-sidebar-items", {
+              "dashboard-sidebar-items-active":
+                item.href === "/dashboard" ? pathname === item.href : pathname.includes(item.href),
             })}
           >
             {item.icon}
@@ -43,5 +48,5 @@ export function Sidebar() {
         ))}
       </div>
     </nav>
-  );
+  )
 }
