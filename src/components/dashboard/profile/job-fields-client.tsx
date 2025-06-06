@@ -31,27 +31,31 @@ export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: Job
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="jobRoles">Job Roles</Label>
+        <Label htmlFor="jobRoles" className="text-base leading-4 font-medium">
+          Job Roles
+        </Label>
         <MultiSelect
           options={JOB_ROLES as any}
           selected={jobRoles}
           onChange={setJobRoles}
           placeholder="Select your job roles..."
         />
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base leading-4 text-secondary">
           Select the roles that best describe your expertise and responsibilities.
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="primaryProducts">Primary Products</Label>
+        <Label htmlFor="primaryProducts" className="text-base leading-4 font-medium">
+          Primary Products
+        </Label>
         <MultiSelect
           options={PRIMARY_PRODUCTS as any}
           selected={primaryProducts}
           onChange={setPrimaryProducts}
           placeholder="Select primary products you work with..."
         />
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base leading-4 text-secondary">
           Choose the Microsoft products and technologies you specialize in.
         </p>
       </div>
