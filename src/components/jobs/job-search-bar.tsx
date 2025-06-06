@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { X, Filter } from "lucide-react"
+import { X } from "lucide-react"
 import { getAllJobConstantsClient } from "@/lib/cache/job-constants-client"
 import { UserProfile } from "@/lib/database.types"
 

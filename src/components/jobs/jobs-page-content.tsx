@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { JobFilters as JobFiltersType } from "./job-search-bar"
 import { JobPostingCard } from "./job-posting-card" // JobCard is removed
+import { JobDetailsDialog } from "./job-details-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Loader2, LayoutGrid } from "lucide-react"
+import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Job, JobSearchResponse } from "@/lib/types/jobs"
 import { UserProfile } from "@/lib/database.types"
@@ -24,13 +25,17 @@ interface JobsPageContentProps {
   onFiltersChange: (filters: JobFiltersType) => void
 }
 
-export function JobsPageContent({ profile, searchParams, filters, onSearch, onFiltersChange }: JobsPageContentProps) {
+export function JobsPageContent({ searchParams, filters }: JobsPageContentProps) {
+  const router = useRouter()
+  const urlSearchParams = useSearchParams()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [total, setTotal] = useState(0)
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   // cardType state is no longer needed since only JobPostingCard is used
   // const [cardType, setCardType] = useState<"standard" | "posting">("standard")
 
@@ -83,6 +88,42 @@ export function JobsPageContent({ profile, searchParams, filters, onSearch, onFi
     fetchJobs(1, true, searchParams, filters)
   }, [searchParams, filters])
 
+  // Handle URL-based job selection
+  useEffect(() => {
+    const jobId = urlSearchParams.get("job")
+    if (jobId && jobs.length > 0) {
+      const job = jobs.find((j) => j.id === jobId)
+      if (job) {
+        setSelectedJob(job)
+        setDialogOpen(true)
+      }
+    } else {
+      setDialogOpen(false)
+      setSelectedJob(null)
+    }
+  }, [urlSearchParams, jobs])
+
+  const handleJobSelect = (job: Job) => {
+    setSelectedJob(job)
+    setDialogOpen(true)
+
+    // Update URL with job ID for SEO
+    const params = new URLSearchParams(urlSearchParams.toString())
+    params.set("job", job.id)
+    router.push(`?${params.toString()}`, { scroll: false })
+  }
+
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setSelectedJob(null)
+
+    // Remove job ID from URL
+    const params = new URLSearchParams(urlSearchParams.toString())
+    params.delete("job")
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+    router.push(newUrl, { scroll: false })
+  }
+
   const handleLoadMore = () => {
     if (!loading && hasMore) {
       fetchJobs(page + 1, false)
@@ -131,19 +172,10 @@ export function JobsPageContent({ profile, searchParams, filters, onSearch, onFi
               <JobPostingCard // Only JobPostingCard is rendered
                 key={job.id}
                 job={job}
-                onViewDetails={() => {
-                  // Handle view details - you can customize this
-                  if (job.job_url) {
-                    window.open(job.job_url, "_blank")
-                  }
-                }}
+                onViewDetails={() => handleJobSelect(job)}
                 onBookmark={() => {
                   // Handle bookmark - you can implement this functionality
                   console.log("Bookmark job:", job.id)
-                }}
-                onReport={() => {
-                  // Handle report - you can implement this functionality
-                  console.log("Report job:", job.id)
                 }}
               />
             ))}
@@ -202,6 +234,17 @@ export function JobsPageContent({ profile, searchParams, filters, onSearch, onFi
           </div>
         </div>
       </div>
+
+      {/* Job Details Dialog */}
+      <JobDetailsDialog
+        job={selectedJob}
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
+        onBookmark={() => {
+          // Handle bookmark - you can implement this functionality
+          console.log("Bookmark job:", selectedJob?.id)
+        }}
+      />
     </div>
   )
 }

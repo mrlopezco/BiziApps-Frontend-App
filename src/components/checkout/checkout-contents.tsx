@@ -28,10 +28,14 @@ export function CheckoutContents({ userEmail }: Props) {
   }
 
   const updateItems = useCallback(
-    throttle((paddle: Paddle, priceId: string, quantity: number) => {
-      paddle.Checkout.updateItems([{ priceId, quantity }])
+    // Define the throttled function here
+    throttle((paddleInstance: Paddle, currentPriceId: string, currentQuantity: number) => {
+      // Ensure you use the parameters passed to the throttled function
+      paddleInstance.Checkout.updateItems([{ priceId: currentPriceId, quantity: currentQuantity }])
     }, 1000),
-    [],
+    [], // No dependencies for the throttle function itself, as it's a utility
+    // If the throttle *delay* or any other part of the throttle setup
+    // depended on props/state, you'd add them here.
   )
 
   useEffect(() => {

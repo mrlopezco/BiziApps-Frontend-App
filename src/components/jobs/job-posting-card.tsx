@@ -2,17 +2,17 @@ import { Job } from "@/lib/types/jobs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark, Flag, Star } from "lucide-react"
+import { Bookmark } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
 interface JobPostingCardProps {
   job: Job
   onViewDetails?: () => void
   onBookmark?: () => void
-  onReport?: () => void
 }
 
-export function JobPostingCard({ job, onViewDetails, onBookmark, onReport }: JobPostingCardProps) {
+export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCardProps) {
   // Generate two-letter abbreviations
   const getRoleAbbreviation = (role: string) => {
     if (!role) return "JB"
@@ -90,24 +90,6 @@ export function JobPostingCard({ job, onViewDetails, onBookmark, onReport }: Job
     }
   }
 
-  const SignalBars = ({ level }: { level: "low" | "medium" | "high" }) => (
-    <div className="flex items-end gap-0.5">
-      <div
-        className={cn(
-          "w-1 h-2 rounded-sm",
-          level === "low" ? "bg-red-500" : level === "medium" ? "bg-yellow-500" : "bg-green-500",
-        )}
-      />
-      <div
-        className={cn(
-          "w-1 h-3 rounded-sm",
-          level === "medium" ? "bg-yellow-500" : level === "high" ? "bg-green-500" : "bg-gray-200",
-        )}
-      />
-      <div className={cn("w-1 h-4 rounded-sm", level === "high" ? "bg-green-500" : "bg-gray-200")} />
-    </div>
-  )
-
   const formatJobAttributes = () => {
     const attributes = []
     if (job.job_type) attributes.push(job.job_type)
@@ -163,28 +145,52 @@ export function JobPostingCard({ job, onViewDetails, onBookmark, onReport }: Job
       <CardContent className="p-0 flex flex-col h-full">
         {/* Combined Top + Middle Section - 80% Height */}
         <div
-          className={cn("h-[80%] p-4 m-1 rounded-lg flex flex-col mb-5", getBackgroundColor(confidenceSignal.level))}
+          onClick={onViewDetails}
+          className={cn(
+            "h-[80%] p-4 m-1 rounded-lg flex flex-col mb-5 cursor-pointer",
+            getBackgroundColor(confidenceSignal.level),
+          )}
         >
           {/* Top Area - Icons and Signal */}
           <div className="flex justify-between items-center mb-4">
             {/* Top Left - Icons */}
             <div className="flex items-center gap-1.5">
               {/* Role Icon */}
-              <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                {getRoleAbbreviation(job.job_role || "")}
-              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                    {getRoleAbbreviation(job.job_role || "")}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{job.job_role}</TooltipContent>
+              </Tooltip>
               {/* Product Icon */}
-              <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                {getProductAbbreviation(job.primary_product || "")}
-              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                    {getProductAbbreviation(job.primary_product || "")}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{job.primary_product}</TooltipContent>
+              </Tooltip>
               {/* Source Abbreviation */}
-              <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                {getSourceAbbreviation(job.source_site || "")}
-              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                    {getSourceAbbreviation(job.source_site || "")}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{job.source_site}</TooltipContent>
+              </Tooltip>
               {/* Country Flag */}
-              <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                {getCountryFlag(job.location_country || "")}
-              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                    {getCountryFlag(job.location_country || "")}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{job.location_country}</TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Top Right - Confidence Signal */}
@@ -202,7 +208,7 @@ export function JobPostingCard({ job, onViewDetails, onBookmark, onReport }: Job
             <p className="text-sm text-muted-foreground mb-1 truncate">{getCompanyName()}</p>
 
             {/* Job Title */}
-            <h3 className="text-lg font-semibold text- mb-3 line-clamp-2 leading-tight">{job.title}</h3>
+            <h3 className="text-lg font-semibold text- mb-3 line-clamp-2 leading-tight mb-2">{job.title}</h3>
 
             {/* Job Attributes Bubbles */}
             <div className="flex flex-wrap justify-start gap-1">

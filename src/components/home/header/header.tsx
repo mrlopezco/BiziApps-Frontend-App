@@ -4,10 +4,10 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
 import { LogoutButton } from "@/components/layout/logout-button"
-import { User, LayoutDashboard, Briefcase, Home } from "lucide-react"
+import { User as UserIcon, LayoutDashboard, Briefcase, Home } from "lucide-react"
 
 interface Props {
-  user: User | null
+  data: { user: User | null } | null
 }
 
 export default function Header({ data }: Props) {
@@ -58,7 +58,7 @@ export default function Header({ data }: Props) {
               <div className="flex items-center gap-2">
                 <Link href="/dashboard/profile">
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
+                    <UserIcon className="h-4 w-4" />
                     <span className="hidden sm:inline">Profile</span>
                   </Button>
                 </Link>

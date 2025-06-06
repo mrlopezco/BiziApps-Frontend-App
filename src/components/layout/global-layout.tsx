@@ -1,9 +1,4 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { LogoutButton } from "./logout-button"
 import { createClient } from "@/utils/supabase/server"
-import { User, LayoutDashboard, Briefcase, Home } from "lucide-react"
 import { ReactNode } from "react"
 import Header from "../home/header/header"
 
