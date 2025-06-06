@@ -14,7 +14,7 @@ const sidebarItems = [
   {
     title: "Profile",
     icon: <User className="h-6 w-6" />,
-    href: "/profile",
+    href: "/dashboard/profile",
   },
   {
     title: "Subscriptions",
