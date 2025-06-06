@@ -79,6 +79,24 @@ export async function updateProfile(formData: FormData) {
   const lastName = formData.get("lastName") as string
   const bio = formData.get("bio") as string
   const avatar = formData.get("avatar") as string
+  const jobRoles = formData.get("jobRoles") as string
+  const primaryProducts = formData.get("primaryProducts") as string
+
+  // Parse JSON arrays
+  let parsedJobRoles = []
+  let parsedPrimaryProducts = []
+
+  try {
+    parsedJobRoles = jobRoles ? JSON.parse(jobRoles) : []
+  } catch (e) {
+    console.error("Failed to parse job roles:", e)
+  }
+
+  try {
+    parsedPrimaryProducts = primaryProducts ? JSON.parse(primaryProducts) : []
+  } catch (e) {
+    console.error("Failed to parse primary products:", e)
+  }
 
   const { error: updateError } = await supabase
     .from("user_profiles")
@@ -87,6 +105,8 @@ export async function updateProfile(formData: FormData) {
       last_name: lastName || null,
       bio: bio || null,
       avatar: avatar || null,
+      job_roles: parsedJobRoles,
+      primary_products: parsedPrimaryProducts,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id)

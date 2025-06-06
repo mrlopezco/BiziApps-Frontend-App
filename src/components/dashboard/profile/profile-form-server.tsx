@@ -1,11 +1,13 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { User } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { User, Briefcase } from "lucide-react"
 import { UserProfile } from "@/lib/database.types"
 import { updateProfile } from "@/lib/profile-actions"
 import { SubmitButton } from "./profile-form-client"
 import { ProfileMessages } from "./profile-messages"
+import { JobFieldsClient } from "./job-fields-client"
 import { Suspense } from "react"
 
 interface ProfileFormServerProps {
@@ -14,7 +16,7 @@ interface ProfileFormServerProps {
 
 export function ProfileFormServer({ profile }: ProfileFormServerProps) {
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
@@ -70,6 +72,20 @@ export function ProfileFormServer({ profile }: ProfileFormServerProps) {
               defaultValue={profile?.bio || ""}
               placeholder="Tell us a bit about yourself..."
               className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+
+          <Separator className="my-6" />
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Briefcase className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Professional Information</h3>
+            </div>
+
+            <JobFieldsClient
+              initialJobRoles={profile?.job_roles || []}
+              initialPrimaryProducts={profile?.primary_products || []}
             />
           </div>
 
