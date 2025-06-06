@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin "tailwindcss-animate";
 
@@ -61,7 +61,47 @@
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  width: 100%;
+  max-width: var(--container-header);
+  padding-inline: 1rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility container-main {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-main);
+  padding-inline: 1rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility container-compact {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--container-compact);
+  padding-inline: 1rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
 }
 
 @theme inline {
@@ -95,6 +135,9 @@
   --container-2xs: 16rem;
   --container-4xs: 8rem;
   --container-16xs: 4rem;
+  --container-header: 125rem; /* 2000px */
+  --container-main: 112.5rem; /* 1800px */
+  --container-compact: 75rem; /* 1200px */
 
   @keyframes accordion-down {
     from {

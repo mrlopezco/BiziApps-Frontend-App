@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { JobSearchBar } from "./job-search-bar"
-import { JobFilters, JobFilters as JobFiltersType } from "./job-filters-simple"
+import { JobFilters as JobFiltersType } from "./job-search-bar"
 import { JobCard } from "./job-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -79,11 +79,14 @@ export function JobsPageContent({ profile }: JobsPageContentProps) {
     fetchJobs()
   }, [])
 
-  const handleSearch = (params: typeof searchParams) => {
-    setSearchParams(params)
-    setPage(1)
-    fetchJobs(1, true, params, filters)
-  }
+  const handleSearch = useCallback(
+    (params: typeof searchParams) => {
+      setSearchParams(params)
+      setPage(1)
+      fetchJobs(1, true, params, filters)
+    },
+    [filters],
+  )
 
   const handleFiltersChange = (newFilters: JobFiltersType) => {
     setFilters(newFilters)
@@ -100,17 +103,17 @@ export function JobsPageContent({ profile }: JobsPageContentProps) {
   return (
     <div className="space-y-6">
       {/* Search Bar */}
-      <JobSearchBar profile={profile} onSearch={handleSearch} />
+      <JobSearchBar
+        profile={profile}
+        onSearch={handleSearch}
+        onFiltersChange={handleFiltersChange}
+        appliedFilters={filters}
+      />
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filters Sidebar */}
-        <div className="lg:col-span-1">
-          <JobFilters onFiltersChange={handleFiltersChange} appliedFilters={filters} />
-        </div>
-
+      <div>
         {/* Jobs Results */}
-        <div className="lg:col-span-3">
+        <div>
           {/* Results Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
