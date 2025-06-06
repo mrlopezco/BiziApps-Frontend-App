@@ -3,16 +3,48 @@
 import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { MultiSelect } from "@/components/ui/multi-select"
-import { JOB_ROLES, PRIMARY_PRODUCTS, JobRole, PrimaryProduct } from "@/lib/constants/job-options"
+import { getAllJobConstantsClient } from "@/lib/cache/job-constants-client"
+import { JobRole, PrimaryProduct } from "@/lib/constants/job-options"
 
 interface JobFieldsClientProps {
   initialJobRoles: JobRole[]
   initialPrimaryProducts: PrimaryProduct[]
 }
 
+interface JobConstants {
+  jobRoles: Array<{ value: string; label: string }>
+  primaryProducts: Array<{ value: string; label: string }>
+}
+
 export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: JobFieldsClientProps) {
   const [jobRoles, setJobRoles] = useState<string[]>(initialJobRoles)
   const [primaryProducts, setPrimaryProducts] = useState<string[]>(initialPrimaryProducts)
+  const [constants, setConstants] = useState<JobConstants | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Load constants from cache/database
+  useEffect(() => {
+    async function loadConstants() {
+      try {
+        const data = await getAllJobConstantsClient()
+        setConstants({
+          jobRoles: data.jobRoles,
+          primaryProducts: data.primaryProducts,
+        })
+      } catch (error) {
+        console.error("Failed to load job constants:", error)
+        // Set fallback constants if needed
+        setConstants({
+          jobRoles: [],
+          primaryProducts: [],
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadConstants()
+  }, [])
 
   // Update hidden inputs when values change
   useEffect(() => {
@@ -28,6 +60,23 @@ export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: Job
     }
   }, [jobRoles, primaryProducts])
 
+  if (loading || !constants) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Label className="text-base leading-4 font-medium">Job Roles</Label>
+          <div className="h-10 bg-muted rounded animate-pulse" />
+          <p className="text-base leading-4 text-secondary">Loading job roles...</p>
+        </div>
+        <div className="space-y-2">
+          <Label className="text-base leading-4 font-medium">Primary Products</Label>
+          <div className="h-10 bg-muted rounded animate-pulse" />
+          <p className="text-base leading-4 text-secondary">Loading primary products...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="space-y-2">
@@ -35,7 +84,7 @@ export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: Job
           Job Roles
         </Label>
         <MultiSelect
-          options={JOB_ROLES as any}
+          options={constants.jobRoles}
           selected={jobRoles}
           onChange={setJobRoles}
           placeholder="Select your job roles..."
@@ -50,7 +99,7 @@ export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: Job
           Primary Products
         </Label>
         <MultiSelect
-          options={PRIMARY_PRODUCTS as any}
+          options={constants.primaryProducts}
           selected={primaryProducts}
           onChange={setPrimaryProducts}
           placeholder="Select primary products you work with..."

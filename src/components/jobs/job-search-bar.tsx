@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search } from "lucide-react"
-import { JOB_ROLES, PRIMARY_PRODUCTS } from "@/lib/constants/job-options"
-import { JOB_TYPES, COUNTRIES } from "@/lib/types/jobs"
+import { getAllJobConstantsClient } from "@/lib/cache/job-constants-client"
 import { UserProfile } from "@/lib/database.types"
 
 interface JobSearchBarProps {
@@ -14,11 +12,43 @@ interface JobSearchBarProps {
   onSearch: (params: { job_role: string; primary_product: string; location_country: string; job_type: string }) => void
 }
 
+interface JobConstants {
+  jobRoles: Array<{ value: string; label: string }>
+  primaryProducts: Array<{ value: string; label: string }>
+  jobTypes: Array<{ value: string; label: string }>
+  countries: Array<{ value: string; label: string }>
+}
+
 export function JobSearchBar({ profile, onSearch }: JobSearchBarProps) {
   const [jobRole, setJobRole] = useState<string>("all")
   const [primaryProduct, setPrimaryProduct] = useState<string>("all")
   const [locationCountry, setLocationCountry] = useState<string>("all")
   const [jobType, setJobType] = useState<string>("all")
+  const [constants, setConstants] = useState<JobConstants | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Load constants from cache/database
+  useEffect(() => {
+    async function loadConstants() {
+      try {
+        const data = await getAllJobConstantsClient()
+        setConstants(data)
+      } catch (error) {
+        console.error("Failed to load job constants:", error)
+        // Set fallback constants if needed
+        setConstants({
+          jobRoles: [{ value: "all", label: "All Roles" }],
+          primaryProducts: [{ value: "all", label: "All Products" }],
+          jobTypes: [{ value: "all", label: "All Types" }],
+          countries: [{ value: "all", label: "All Countries" }],
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadConstants()
+  }, [])
 
   // Initialize with profile defaults
   useEffect(() => {
@@ -39,11 +69,29 @@ export function JobSearchBar({ profile, onSearch }: JobSearchBarProps) {
     })
   }
 
-  // Enhanced job roles with "All" option
-  const jobRoleOptions = [{ value: "all", label: "All Roles" }, ...JOB_ROLES]
+  if (loading || !constants) {
+    return (
+      <div className="w-full bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-4 bg-muted rounded animate-pulse" />
+              <div className="h-10 bg-muted rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
-  // Enhanced primary products with "All" option
-  const primaryProductOptions = [{ value: "all", label: "All Products" }, ...PRIMARY_PRODUCTS]
+  // Enhanced options with "All" option
+  const jobRoleOptions = [{ value: "all", label: "All Roles" }, ...constants.jobRoles]
+
+  const primaryProductOptions = [{ value: "all", label: "All Products" }, ...constants.primaryProducts]
+
+  const countryOptions = [{ value: "all", label: "All Countries" }, ...constants.countries]
+
+  const jobTypeOptions = [{ value: "all", label: "All Types" }, ...constants.jobTypes]
 
   return (
     <div className="w-full bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
@@ -90,7 +138,7 @@ export function JobSearchBar({ profile, onSearch }: JobSearchBarProps) {
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
             <SelectContent>
-              {COUNTRIES.map((country) => (
+              {countryOptions.map((country) => (
                 <SelectItem key={country.value} value={country.value}>
                   {country.label}
                 </SelectItem>
@@ -107,7 +155,7 @@ export function JobSearchBar({ profile, onSearch }: JobSearchBarProps) {
               <SelectValue placeholder="Select job type" />
             </SelectTrigger>
             <SelectContent>
-              {JOB_TYPES.map((type) => (
+              {jobTypeOptions.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
                 </SelectItem>
