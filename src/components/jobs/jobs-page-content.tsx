@@ -1,34 +1,38 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { JobSearchBar } from "./job-search-bar"
 import { JobFilters as JobFiltersType } from "./job-search-bar"
-import { JobCard } from "./job-card"
+import { JobPostingCard } from "./job-posting-card" // JobCard is removed
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertCircle, Loader2, LayoutGrid } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Job, JobSearchResponse } from "@/lib/types/jobs"
 import { UserProfile } from "@/lib/database.types"
 
 interface JobsPageContentProps {
   profile: UserProfile | null
+  searchParams: {
+    job_role: string
+    primary_product: string
+    location_country: string
+    job_type: string
+  }
+  filters: JobFiltersType
+  onSearch: (params: { job_role: string; primary_product: string; location_country: string; job_type: string }) => void
+  onFiltersChange: (filters: JobFiltersType) => void
 }
 
-export function JobsPageContent({ profile }: JobsPageContentProps) {
+export function JobsPageContent({ profile, searchParams, filters, onSearch, onFiltersChange }: JobsPageContentProps) {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [searchParams, setSearchParams] = useState({
-    job_role: "all",
-    primary_product: "all",
-    location_country: "all",
-    job_type: "all",
-  })
-  const [filters, setFilters] = useState<JobFiltersType>({})
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [total, setTotal] = useState(0)
+  // cardType state is no longer needed since only JobPostingCard is used
+  // const [cardType, setCardType] = useState<"standard" | "posting">("standard")
 
   const fetchJobs = async (
     newPage = 1,
@@ -74,25 +78,10 @@ export function JobsPageContent({ profile }: JobsPageContentProps) {
     }
   }
 
-  // Initial load
+  // Load jobs when search params or filters change
   useEffect(() => {
-    fetchJobs()
-  }, [])
-
-  const handleSearch = useCallback(
-    (params: typeof searchParams) => {
-      setSearchParams(params)
-      setPage(1)
-      fetchJobs(1, true, params, filters)
-    },
-    [filters],
-  )
-
-  const handleFiltersChange = (newFilters: JobFiltersType) => {
-    setFilters(newFilters)
-    setPage(1)
-    fetchJobs(1, true, searchParams, newFilters)
-  }
+    fetchJobs(1, true, searchParams, filters)
+  }, [searchParams, filters])
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
@@ -102,23 +91,21 @@ export function JobsPageContent({ profile }: JobsPageContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* Search Bar */}
-      <JobSearchBar
-        profile={profile}
-        onSearch={handleSearch}
-        onFiltersChange={handleFiltersChange}
-        appliedFilters={filters}
-      />
-
       {/* Main Content */}
-      <div>
+      <div id="jobs-results" className="p-6 rounded-lg">
         {/* Jobs Results */}
         <div>
           {/* Results Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-xl font-semibold">Job Results</h2>
-              <p className="text-sm text-muted-foreground">{loading ? "Loading..." : `${total} jobs found`}</p>
+          <div className="flex flex-col justify-between items-center mb-6">
+            <div className="flex flex-col w-full items-start mb-6">
+              {" "}
+              {/* Changed justify-between and items-center */}
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-xl font-semibold">Recommended Jobs</h2>
+                <div className="bg-primary hover:bg-primary/90 text-primary-foreground px-2 py-1 border-secondary border-1 rounded-md">
+                  <p className="">{loading ? "Loading..." : `${total}`}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -131,9 +118,34 @@ export function JobsPageContent({ profile }: JobsPageContentProps) {
           )}
 
           {/* Jobs Grid */}
-          <div className="space-y-4">
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+            // Removed conditional class since only "posting" style is used
+            // className={
+            //   cardType === "posting"
+            //     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+            //     : "space-y-4"
+            // }
+          >
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobPostingCard // Only JobPostingCard is rendered
+                key={job.id}
+                job={job}
+                onViewDetails={() => {
+                  // Handle view details - you can customize this
+                  if (job.job_url) {
+                    window.open(job.job_url, "_blank")
+                  }
+                }}
+                onBookmark={() => {
+                  // Handle bookmark - you can implement this functionality
+                  console.log("Bookmark job:", job.id)
+                }}
+                onReport={() => {
+                  // Handle report - you can implement this functionality
+                  console.log("Report job:", job.id)
+                }}
+              />
             ))}
 
             {/* Loading Skeletons */}

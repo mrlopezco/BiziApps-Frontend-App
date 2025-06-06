@@ -299,7 +299,7 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
 
   return (
     <div className="w-full bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 justify-center">
         {/* Job Role Filter */}
         <FilterDialog
           title="Job Role"
@@ -309,13 +309,7 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           onClear={clearJobRole}
         >
           <Button variant={isFilterActive(jobRole) ? "default" : "outline"} size="sm" className="h-10">
-            <Filter className="h-4 w-4 mr-2" />
             {getDisplayLabel(jobRole, jobRoleOptions)}
-            {isFilterActive(jobRole) && (
-              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
-                1
-              </Badge>
-            )}
           </Button>
         </FilterDialog>
 
@@ -328,7 +322,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           onClear={clearPrimaryProduct}
         >
           <Button variant={isFilterActive(primaryProduct) ? "default" : "outline"} size="sm" className="h-10">
-            <Filter className="h-4 w-4 mr-2" />
             {getDisplayLabel(primaryProduct, primaryProductOptions)}
             {isFilterActive(primaryProduct) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
@@ -347,7 +340,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           onClear={clearLocationCountry}
         >
           <Button variant={isFilterActive(locationCountry) ? "default" : "outline"} size="sm" className="h-10">
-            <Filter className="h-4 w-4 mr-2" />
             {getDisplayLabel(locationCountry, countryOptions)}
             {isFilterActive(locationCountry) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
@@ -366,7 +358,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           onClear={clearJobType}
         >
           <Button variant={isFilterActive(jobType) ? "default" : "outline"} size="sm" className="h-10">
-            <Filter className="h-4 w-4 mr-2" />
             {getDisplayLabel(jobType, jobTypeOptions)}
             {isFilterActive(jobType) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
@@ -385,7 +376,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           onClear={clearRemoteFilter}
         >
           <Button variant={isBooleanFilterActive(filters.remote) ? "default" : "outline"} size="sm" className="h-10">
-            <Filter className="h-4 w-4 mr-2" />
             Remote Work
             {isBooleanFilterActive(filters.remote) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
@@ -408,7 +398,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
             size="sm"
             className="h-10"
           >
-            <Filter className="h-4 w-4 mr-2" />
             Visa Sponsorship
             {isBooleanFilterActive(filters.visaSponsorship) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
