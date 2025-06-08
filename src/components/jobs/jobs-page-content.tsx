@@ -169,20 +169,16 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
             // }
           >
             {jobs.map((job) => (
-              <JobPostingCard // Only JobPostingCard is rendered
-                key={job.id}
-                job={job}
-                onViewDetails={() => handleJobSelect(job)}
-                onBookmark={() => {
-                  // Handle bookmark - you can implement this functionality
-                  console.log("Bookmark job:", job.id)
-                }}
-              />
+              <JobPostingCard key={job.id} job={job} onViewDetails={() => handleJobSelect(job)} />
             ))}
 
             {/* Loading Skeletons */}
             {loading && jobs.length === 0 && (
-              <div className="space-y-4">
+              // Apply the grid classes directly to the skeletons or their immediate parent
+              // Each skeleton item will then respect the grid columns
+              <>
+                {" "}
+                {/* Use a fragment or an appropriate div if you need a wrapper */}
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
                     <div className="space-y-3">
@@ -197,7 +193,7 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
                     </div>
                   </div>
                 ))}
-              </div>
+              </>
             )}
 
             {/* Empty State */}
@@ -236,15 +232,7 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
       </div>
 
       {/* Job Details Dialog */}
-      <JobDetailsDialog
-        job={selectedJob}
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        onBookmark={() => {
-          // Handle bookmark - you can implement this functionality
-          console.log("Bookmark job:", selectedJob?.id)
-        }}
-      />
+      <JobDetailsDialog job={selectedJob} open={dialogOpen} onOpenChange={handleDialogClose} />
     </div>
   )
 }

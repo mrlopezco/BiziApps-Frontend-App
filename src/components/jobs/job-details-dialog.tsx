@@ -1,19 +1,60 @@
-import { Job } from "@/lib/types/jobs"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { JobWithInteraction } from "@/lib/types/jobs"
+import { Dialog } from "@/components/ui/dialog"
+import { JobCardDialogContent } from "@/components/ui/dialog" // Using the custom variant
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark, ExternalLink, MapPin, Calendar, Clock, DollarSign, Globe } from "lucide-react"
+import { Bookmark, ExternalLink, MapPin, Calendar, Clock, DollarSign, Globe, ThumbsUp, ThumbsDown } from "lucide-react" // Removed ChevronDown, ChevronUp
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { useState, useTransition, useEffect } from "react"
+import { toggleJobBookmark, voteOnJob } from "@/lib/actions/job-interactions"
 
 interface JobDetailsDialogProps {
-  job: Job | null
+  job: JobWithInteraction | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onBookmark?: () => void
 }
 
-export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDetailsDialogProps) {
+export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogProps) {
+  const [isPending, startTransition] = useTransition()
+
+  // Local state for optimistic updates
+  const [localBookmarkState, setLocalBookmarkState] = useState(job?.user_interaction?.is_favorite ?? false)
+  const [hasApplied, setHasApplied] = useState(false)
+  const [userVote, setUserVote] = useState<"upvote" | "downvote" | null>(job?.user_interaction?.vote_type ?? null)
+
+  const isBookmarked = localBookmarkState
+
+  // Reset hasApplied state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setHasApplied(false)
+    }
+  }, [open])
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!job) return
+
+    // Optimistically update the UI
+    const newBookmarkState = !localBookmarkState
+    setLocalBookmarkState(newBookmarkState)
+
+    startTransition(async () => {
+      const result = await toggleJobBookmark(job.id)
+
+      if (!result.success) {
+        // Revert the optimistic update if the server action failed
+        setLocalBookmarkState(localBookmarkState)
+      }
+    })
+  }
+  // Removed: const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+  // Removed: useEffect to reset expanded state
+
   if (!job) return null
 
   // Same helper functions as in JobPostingCard
@@ -138,15 +179,54 @@ export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDet
   const handleApplyNow = () => {
     if (job.job_url) {
       window.open(job.job_url, "_blank")
+      setHasApplied(true)
     }
+  }
+
+  const handleVote = (voteType: "upvote" | "downvote") => {
+    if (!job) return
+
+    // Optimistically update the UI
+    const newVote = userVote === voteType ? null : voteType
+    setUserVote(newVote)
+
+    startTransition(async () => {
+      if (newVote) {
+        const result = await voteOnJob(job.id, newVote)
+        if (!result.success) {
+          // Revert the optimistic update if the server action failed
+          setUserVote(userVote)
+        }
+      }
+    })
+  }
+
+  // Function to detect if text contains markdown
+  const isMarkdown = (text: string) => {
+    const markdownPatterns = [
+      /#{1,6}\s+/g, // Headers
+      /\*\*[^*]+\*\*/g, // Bold
+      /\*[^*]+\*/g, // Italic
+      /`[^`]+`/g, // Inline code
+      /```[\s\S]*?```/g, // Code blocks
+      /\[[^\]]+\]\([^)]+\)/g, // Links
+      /^\s*[-*+]\s+/gm, // Unordered lists
+      /^\s*\d+\.\s+/gm, // Ordered lists
+      /^\s*>\s+/gm, // Blockquotes
+    ]
+
+    return markdownPatterns.some((pattern) => pattern.test(text))
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0">
-        <div className="bg-white text-black flex flex-col">
+      <JobCardDialogContent className="w-[80vw] h-[80vh] flex flex-col overflow-hidden">
+        <div className="bg-white text-black flex flex-col h-full rounded-lg shadow-xl">
           {/* Top Section - Same as card */}
-          <div className={cn("p-6 m-1 rounded-lg", getBackgroundColor(confidenceSignal.level))}>
+          <div
+            className={cn("p-6 m-1 rounded-lg min-h-[150px] flex-shrink-0", getBackgroundColor(confidenceSignal.level))}
+            id="job-details-dialog-top-section"
+          >
             {/* Top Icons and Signal */}
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-1.5">
@@ -163,7 +243,16 @@ export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDet
                   {getCountryFlag(job.location_country || "")}
                 </div>
               </div>
-              <Button variant="default" size="sm" onClick={onBookmark} className="h-7 w-7 p-0 hover:bg-muted">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleBookmarkClick}
+                disabled={isPending}
+                className={cn(
+                  "h-10 w-10 p-0 mr-10 hover:bg-muted transition-colors",
+                  isBookmarked && "bg-green-500 text-white hover:bg-green-600",
+                )}
+              >
                 <Bookmark className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -188,8 +277,11 @@ export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDet
             </div>
           </div>
 
-          {/* Expanded Details Section */}
-          <div className="px-6 py-4 flex-1 overflow-y-auto">
+          {/* Expanded Details Section - Middle (most important) */}
+          <div
+            className="px-6 py-4 flex-grow overflow-y-auto min-h-[200px]" // `overflow-y-auto` ensures scrollbar when content exceeds height
+            id="job-details-dialog-expanded-details-section"
+          >
             {/* Job Info Grid */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-2 text-sm">
@@ -233,26 +325,71 @@ export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDet
             {/* Job Description */}
             {job.description && (
               <div className="mb-6">
-                <h3 className="font-semibold mb-3">Job Description</h3>
-                <div className="prose prose-sm max-w-none">
-                  <div
-                    className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{
-                      __html: job.description.replace(/\n/g, "<br/>"),
-                    }}
-                  />
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold">Job Description</h3>
+                  {/* Removed the "Show More/Less" button and its conditional rendering */}
                 </div>
-              </div>
-            )}
-
-            {/* Relevance Information */}
-            {job.relevance_reason && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold mb-2 text-blue-800">Why this job matches you</h3>
-                <p className="text-sm text-blue-700">{job.relevance_reason}</p>
-                {job.relevance_score && (
-                  <div className="mt-2 text-xs text-blue-600">Match Score: {job.relevance_score}/20</div>
-                )}
+                <div
+                  className={cn(
+                    "relative transition-all duration-300 ease-in-out",
+                    // Removed max-h-48, overflow-hidden, and conditional classes
+                  )}
+                >
+                  <div className="prose prose-sm max-w-none">
+                    {isMarkdown(job.description) ? (
+                      <div className="text-sm text-gray-700 leading-relaxed">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            // Custom styling for markdown elements
+                            h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-4">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-3">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-bold mb-1 mt-2">{children}</h3>,
+                            p: ({ children }) => <p className="mb-2">{children}</p>,
+                            ul: ({ children }) => <ul className="list-disc list-inside mb-2 ml-2">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside mb-2 ml-2">{children}</ol>,
+                            li: ({ children }) => <li className="mb-1">{children}</li>,
+                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                            em: ({ children }) => <em className="italic">{children}</em>,
+                            code: ({ children }) => (
+                              <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>
+                            ),
+                            pre: ({ children }) => (
+                              <pre className="bg-gray-100 p-3 rounded-md overflow-x-auto text-xs font-mono mb-2">
+                                {children}
+                              </pre>
+                            ),
+                            blockquote: ({ children }) => (
+                              <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-2">
+                                {children}
+                              </blockquote>
+                            ),
+                            a: ({ href, children }) => (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline"
+                              >
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {job.description}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div
+                        className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{
+                          __html: job.description.replace(/\n/g, "<br/>"),
+                        }}
+                      />
+                    )}
+                  </div>
+                  {/* Removed the fade overlay */}
+                </div>
               </div>
             )}
 
@@ -269,7 +406,10 @@ export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDet
           </div>
 
           {/* Bottom CTA Section */}
-          <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+          <div
+            className="flex justify-between items-center p-6 border-t bg-gray-50 min-h-[100px] flex-shrink-0"
+            id="job-details-dialog-bottom-cta-section"
+          >
             <div className="flex flex-col">
               <span className="font-semibold text-lg">
                 {job.min_salary ? `$${formatSalary(roundSalary(job.min_salary))}` : "Salary not specified"}
@@ -277,18 +417,52 @@ export function JobDetailsDialog({ job, open, onOpenChange, onBookmark }: JobDet
               <span className="text-sm text-muted-foreground">{formatLocation()}</span>
             </div>
 
-            {/* Prominent Apply Button */}
-            <Button
-              onClick={handleApplyNow}
-              size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              <ExternalLink className="h-5 w-5 mr-2" />
-              Apply Now
-            </Button>
+            {hasApplied ? (
+              /* Voting Buttons */
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => handleVote("upvote")}
+                  size="lg"
+                  disabled={isPending}
+                  className={cn(
+                    "px-6 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200",
+                    userVote === "upvote"
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300",
+                  )}
+                >
+                  <ThumbsUp className="h-5 w-5 mr-2" />
+                  {userVote === "upvote" ? "Upvoted" : "Upvote"}
+                </Button>
+                <Button
+                  onClick={() => handleVote("downvote")}
+                  size="lg"
+                  disabled={isPending}
+                  className={cn(
+                    "px-6 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200",
+                    userVote === "downvote"
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300",
+                  )}
+                >
+                  <ThumbsDown className="h-5 w-5 mr-2" />
+                  {userVote === "downvote" ? "Downvoted" : "Downvote"}
+                </Button>
+              </div>
+            ) : (
+              /* Prominent Apply Button */
+              <Button
+                onClick={handleApplyNow}
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <ExternalLink className="h-5 w-5 mr-2" />
+                Apply Now
+              </Button>
+            )}
           </div>
         </div>
-      </DialogContent>
+      </JobCardDialogContent>
     </Dialog>
   )
 }

@@ -165,6 +165,7 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
   const [filters, setFilters] = useState<JobFilters>(appliedFilters)
   const [constants, setConstants] = useState<JobConstants | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileInitialized, setProfileInitialized] = useState(false)
 
   // Load constants from cache/database
   useEffect(() => {
@@ -189,15 +190,18 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
     loadConstants()
   }, [])
 
-  // Initialize with profile defaults
+  // Initialize with profile defaults - only run once
   useEffect(() => {
-    if (profile?.job_roles && profile.job_roles.length > 0) {
-      setJobRole(profile.job_roles[0])
+    if (!profileInitialized && profile) {
+      if (profile?.job_roles && profile.job_roles.length > 0) {
+        setJobRole(profile.job_roles[0])
+      }
+      if (profile?.primary_products && profile.primary_products.length > 0) {
+        setPrimaryProduct(profile.primary_products[0])
+      }
+      setProfileInitialized(true)
     }
-    if (profile?.primary_products && profile.primary_products.length > 0) {
-      setPrimaryProduct(profile.primary_products[0])
-    }
-  }, [profile])
+  }, [profile, profileInitialized])
 
   // Auto-execute search when filters change
   useEffect(() => {

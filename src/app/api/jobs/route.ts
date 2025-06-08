@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
-import { JobSearchResponse } from "@/lib/types/jobs"
+import { JobSearchResponse, JobWithInteraction } from "@/lib/types/jobs"
+import { getUserJobInteractions } from "@/lib/actions/job-interactions"
 
 export async function GET(request: Request) {
   try {
@@ -69,11 +70,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Failed to fetch jobs" }, { status: 500 })
     }
 
+    // Get user interactions for these jobs
+    const jobIds = jobs?.map((job) => job.id) || []
+    const userInteractions = await getUserJobInteractions(jobIds)
+
+    // Combine jobs with user interactions
+    const jobsWithInteractions: JobWithInteraction[] = (jobs || []).map((job) => ({
+      ...job,
+      user_interaction: userInteractions[job.id] || null,
+    }))
+
     const total = count || 0
     const hasMore = offset + limit < total
 
     const response: JobSearchResponse = {
-      jobs: jobs || [],
+      jobs: jobsWithInteractions,
       total,
       hasMore,
       page,

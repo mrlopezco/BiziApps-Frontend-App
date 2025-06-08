@@ -1,6 +1,6 @@
 "use client"
 
-import { Album, Briefcase, CreditCard, Home, User } from "lucide-react"
+import { Album, Briefcase, CreditCard, Home, User, Bookmark } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -20,6 +20,11 @@ const sidebarItems = [
     title: "Jobs",
     icon: <Briefcase className="h-6 w-6" />,
     href: "/jobs",
+  },
+  {
+    title: "Bookmarks",
+    icon: <Bookmark className="h-6 w-6" />,
+    href: "/dashboard/bookmarks",
   },
   {
     title: "Subscriptions",

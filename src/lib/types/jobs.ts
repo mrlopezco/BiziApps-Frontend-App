@@ -37,7 +37,7 @@ export interface JobSearchParams {
 }
 
 export interface JobSearchResponse {
-  jobs: Job[]
+  jobs: JobWithInteraction[]
   total: number
   hasMore: boolean
   page: number
@@ -66,3 +66,36 @@ export const COUNTRIES = [
   { value: "DK", label: "Denmark" },
   { value: "NO", label: "Norway" },
 ] as const
+
+// User job interaction types
+export type VoteType = "upvote" | "downvote"
+
+export interface UserJobInteraction {
+  id: string
+  user_id: string
+  job_id: string
+  is_favorite: boolean
+  is_not_interested: boolean
+  vote_type: VoteType | null
+  vote_reason: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface JobWithInteraction extends Job {
+  user_interaction?: UserJobInteraction | null
+}
+
+export interface CreateJobInteractionParams {
+  job_id: string
+  is_favorite?: boolean
+  is_not_interested?: boolean
+  vote_type?: VoteType | null
+  vote_reason?: string | null
+  notes?: string | null
+}
+
+export interface UpdateJobInteractionParams extends Partial<CreateJobInteractionParams> {
+  id: string
+}

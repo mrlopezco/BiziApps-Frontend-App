@@ -1,24 +1,29 @@
-import { Job } from "@/lib/types/jobs"
+import { JobWithInteraction } from "@/lib/types/jobs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark } from "lucide-react"
+import { Bookmark, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { useState, useTransition } from "react"
+import { toggleJobBookmark } from "@/lib/actions/job-interactions"
 
 interface JobPostingCardProps {
-  job: Job
+  job: JobWithInteraction
   onViewDetails?: () => void
-  onBookmark?: () => void
 }
 
-export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCardProps) {
+export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
   // Generate two-letter abbreviations
   const getRoleAbbreviation = (role: string) => {
     if (!role) return "JB"
     const words = role.split(" ")
     if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase()
+      return words
+        .slice(0, 2)
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase()
     }
     return role.substring(0, 2).toUpperCase()
   }
@@ -27,7 +32,11 @@ export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCar
     if (!product) return "PR"
     const words = product.split(" ")
     if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase()
+      return words
+        .slice(0, 2)
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase()
     }
     return product.substring(0, 2).toUpperCase()
   }
@@ -59,7 +68,7 @@ export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCar
       india: "🇮🇳",
       singapore: "🇸🇬",
     }
-    return flagMap[country.toLowerCase()] || "🌍"
+    return flagMap?.[country.toLowerCase()] || "🌍"
   }
 
   const getConfidenceSignal = (score?: number): { level: "low" | "medium" | "high" } => {
@@ -137,11 +146,33 @@ export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCar
     return salary.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
 
-  // Log the job variable
-  console.log(job)
+  const [isHovering, setIsHovering] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  // Local state for optimistic updates
+  const [localBookmarkState, setLocalBookmarkState] = useState(job.user_interaction?.is_favorite ?? false)
+
+  const isBookmarked = localBookmarkState
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering onViewDetails
+
+    // Optimistically update the UI
+    const newBookmarkState = !localBookmarkState
+    setLocalBookmarkState(newBookmarkState)
+
+    startTransition(async () => {
+      const result = await toggleJobBookmark(job.id)
+
+      if (!result.success) {
+        // Revert the optimistic update if the server action failed
+        setLocalBookmarkState(localBookmarkState)
+      }
+    })
+  }
 
   return (
-    <Card className="bg-background/50 backdrop-blur-[24px]  hover:shadow-lg transition-all duration-200 border-secondary h-64 flex flex-col bg-white text-black min-h-[300px]">
+    <Card className="rounded-lg bg-background/50 backdrop-blur-[24px]  hover:shadow-lg transition-all duration-200 border-secondary h-64 flex flex-col bg-white text-black min-h-[300px]">
       <CardContent className="p-0 flex flex-col h-full">
         {/* Combined Top + Middle Section - 80% Height */}
         <div
@@ -196,7 +227,16 @@ export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCar
             {/* Top Right - Confidence Signal */}
             <div className="flex items-center">
               {/* <SignalBars level={confidenceSignal.level} /> */}
-              <Button variant="default" size="sm" onClick={onBookmark} className="h-7 w-7 p-0 hover:bg-muted">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleBookmarkClick}
+                disabled={isPending}
+                className={cn(
+                  "h-7 w-7 p-0 hover:bg-muted transition-colors",
+                  isBookmarked && "bg-green-500 text-white hover:bg-green-600",
+                )}
+              >
                 <Bookmark className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -228,9 +268,9 @@ export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCar
         </div>
 
         {/* Bottom Section - 20% Height */}
-        <div className="flex justify-between h-[20%] min-h-[3rem] px-4 pb-4">
+        <div className="flex justify-between h-[20%] min-h-[3rem] px-4 pb-4 items-center">
           {/* Bottom Left - Action Buttons */}
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full justify-center">
             <span className="font-semibold">
               {job.min_salary !== null ? `$${formatSalary(roundSalary(job.min_salary))}` : ""}
             </span>
@@ -240,9 +280,16 @@ export function JobPostingCard({ job, onViewDetails, onBookmark }: JobPostingCar
           <Button
             onClick={onViewDetails}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 overflow-hidden relative"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
           >
-            View Details
+            <ArrowRight
+              className={cn(
+                "h-4 w-4 transition-transform duration-200 absolute left-2.5",
+                isHovering && "transform translate-x-1",
+              )}
+            />
           </Button>
         </div>
       </CardContent>
