@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: 'AeroEdit - Error',
-};
+  title: "BiziApps - Error",
+}
 
 export default function ErrorPage() {
   return (
@@ -11,5 +11,5 @@ export default function ErrorPage() {
         Something went wrong, please try again later
       </p>
     </div>
-  );
+  )
 }
