@@ -36,15 +36,6 @@ export default function Header({ data }: Props) {
             <Briefcase className="h-4 w-4" />
             Jobs
           </Link>
-          {data?.user && (
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
-          )}
         </nav>
 
         {/* User Menu */}

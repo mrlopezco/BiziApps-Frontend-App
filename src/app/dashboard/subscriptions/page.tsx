@@ -1,6 +1,6 @@
-import { LoadingScreen } from '@/components/dashboard/layout/loading-screen';
-import { Suspense } from 'react';
-import { Subscriptions } from '@/components/dashboard/subscriptions/subscriptions';
+import { LoadingScreen } from "@/components/dashboard/layout/loading-screen"
+import { Suspense } from "react"
+import { Subscriptions } from "@/components/dashboard/subscriptions/subscriptions"
 
 export default async function SubscriptionsListPage() {
   return (
@@ -9,5 +9,5 @@ export default async function SubscriptionsListPage() {
         <Subscriptions />
       </Suspense>
     </main>
-  );
+  )
 }

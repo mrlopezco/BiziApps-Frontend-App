@@ -1,17 +1,17 @@
-import { ReactNode } from 'react';
-import { DashboardLayout } from '@/components/dashboard/layout/dashboard-layout';
-import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
+import { ReactNode } from "react"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { createClient } from "@/utils/supabase/server"
+import { redirect } from "next/navigation"
 
 interface Props {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export default async function Layout({ children }: Props) {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const { data } = await supabase.auth.getUser()
   if (!data.user) {
-    redirect('/login');
+    redirect("/login")
   }
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <DashboardLayout>{children}</DashboardLayout>
 }

@@ -16,11 +16,6 @@ export default async function BookmarksPage() {
 
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Bookmarked Jobs</h1>
-          <p className="text-muted-foreground mt-2">Jobs you&apos;ve saved for later review</p>
-        </div>
-
         <BookmarksPageContent initialData={bookmarkedJobs} />
       </div>
     )

@@ -1,8 +1,7 @@
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
-import { Sidebar } from '@/components/dashboard/layout/sidebar';
-import { SidebarUserInfo } from '@/components/dashboard/layout/sidebar-user-info';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { Menu } from "lucide-react"
+import { DashboardMenuBar } from "@/components/dashboard/layout/dashboard-menu-bar"
 
 export function MobileSidebar() {
   return (
@@ -14,9 +13,8 @@ export function MobileSidebar() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col">
-        <Sidebar />
-        <SidebarUserInfo />
+        <DashboardMenuBar />
       </SheetContent>
     </Sheet>
-  );
+  )
 }
