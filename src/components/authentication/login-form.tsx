@@ -49,6 +49,11 @@ export function LoginForm() {
         password={password}
         onPasswordChange={(password) => setPassword(password)}
       />
+      <div className={"w-full flex justify-end"}>
+        <a href={"/forgot-password"} className={"text-sm text-muted-foreground hover:text-white transition-colors"}>
+          Forgot password?
+        </a>
+      </div>
       <Button formAction={() => handleLogin()} type={"submit"} variant={"secondary"} className={"w-full"}>
         Log in
       </Button>

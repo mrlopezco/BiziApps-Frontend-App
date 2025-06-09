@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
-import { MultiSelect } from "@/components/ui/multi-select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getAllJobConstantsClient } from "@/lib/cache/job-constants-client"
 import { JobRole, PrimaryProduct } from "@/lib/constants/job-options"
 
@@ -17,8 +17,9 @@ interface JobConstants {
 }
 
 export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: JobFieldsClientProps) {
-  const [jobRoles, setJobRoles] = useState<string[]>(initialJobRoles)
-  const [primaryProducts, setPrimaryProducts] = useState<string[]>(initialPrimaryProducts)
+  // Change to single values instead of arrays
+  const [jobRole, setJobRole] = useState<string>(initialJobRoles[0] || "")
+  const [primaryProduct, setPrimaryProduct] = useState<string>(initialPrimaryProducts[0] || "")
   const [constants, setConstants] = useState<JobConstants | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -48,28 +49,28 @@ export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: Job
 
   // Update hidden inputs when values change
   useEffect(() => {
-    // Update hidden form fields
-    const jobRolesInput = document.querySelector('input[name="jobRoles"]') as HTMLInputElement
-    const primaryProductsInput = document.querySelector('input[name="primaryProducts"]') as HTMLInputElement
+    // Update hidden form fields - still use arrays for backend compatibility
+    const jobRoleInput = document.querySelector('input[name="jobRoles"]') as HTMLInputElement
+    const primaryProductInput = document.querySelector('input[name="primaryProducts"]') as HTMLInputElement
 
-    if (jobRolesInput) {
-      jobRolesInput.value = JSON.stringify(jobRoles)
+    if (jobRoleInput) {
+      jobRoleInput.value = JSON.stringify(jobRole ? [jobRole] : [])
     }
-    if (primaryProductsInput) {
-      primaryProductsInput.value = JSON.stringify(primaryProducts)
+    if (primaryProductInput) {
+      primaryProductInput.value = JSON.stringify(primaryProduct ? [primaryProduct] : [])
     }
-  }, [jobRoles, primaryProducts])
+  }, [jobRole, primaryProduct])
 
   if (loading || !constants) {
     return (
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label className="text-base leading-4 font-medium">Job Roles</Label>
+          <Label className="text-base leading-4 font-medium">Job Role</Label>
           <div className="h-10 bg-muted rounded animate-pulse" />
           <p className="text-base leading-4 text-secondary">Loading job roles...</p>
         </div>
         <div className="space-y-2">
-          <Label className="text-base leading-4 font-medium">Primary Products</Label>
+          <Label className="text-base leading-4 font-medium">Primary Product</Label>
           <div className="h-10 bg-muted rounded animate-pulse" />
           <p className="text-base leading-4 text-secondary">Loading primary products...</p>
         </div>
@@ -80,38 +81,54 @@ export function JobFieldsClient({ initialJobRoles, initialPrimaryProducts }: Job
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="jobRoles" className="text-base leading-4 font-medium">
-          Job Roles
+        <Label htmlFor="jobRole" className="text-base leading-4 font-medium">
+          Job Role
         </Label>
-        <MultiSelect
-          options={constants.jobRoles}
-          selected={jobRoles}
-          onChange={setJobRoles}
-          placeholder="Select your job roles..."
-        />
+        <Select value={jobRole} onValueChange={setJobRole}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your job role..." />
+          </SelectTrigger>
+          <SelectContent>
+            {constants.jobRoles.map((role) => (
+              <SelectItem key={role.value} value={role.value}>
+                {role.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <p className="text-base leading-4 text-secondary">
-          Select the roles that best describe your expertise and responsibilities.
+          Select the role that best describes your expertise and responsibilities.
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="primaryProducts" className="text-base leading-4 font-medium">
-          Primary Products
+        <Label htmlFor="primaryProduct" className="text-base leading-4 font-medium">
+          Primary Product
         </Label>
-        <MultiSelect
-          options={constants.primaryProducts}
-          selected={primaryProducts}
-          onChange={setPrimaryProducts}
-          placeholder="Select primary products you work with..."
-        />
+        <Select value={primaryProduct} onValueChange={setPrimaryProduct}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your primary product..." />
+          </SelectTrigger>
+          <SelectContent>
+            {constants.primaryProducts.map((product) => (
+              <SelectItem key={product.value} value={product.value}>
+                {product.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <p className="text-base leading-4 text-secondary">
-          Choose the Microsoft products and technologies you specialize in.
+          Choose the Microsoft product or technology you specialize in most.
         </p>
       </div>
 
       {/* Hidden inputs for form submission */}
-      <input type="hidden" name="jobRoles" defaultValue={JSON.stringify(jobRoles)} />
-      <input type="hidden" name="primaryProducts" defaultValue={JSON.stringify(primaryProducts)} />
+      <input type="hidden" name="jobRoles" defaultValue={JSON.stringify(jobRole ? [jobRole] : [])} />
+      <input
+        type="hidden"
+        name="primaryProducts"
+        defaultValue={JSON.stringify(primaryProduct ? [primaryProduct] : [])}
+      />
     </>
   )
 }

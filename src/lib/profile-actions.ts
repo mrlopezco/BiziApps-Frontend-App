@@ -119,3 +119,74 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/dashboard/profile")
   redirect("/dashboard/profile?success=true")
 }
+
+export async function updateProfileFromOAuth() {
+  "use server"
+
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error("No authenticated user found")
+    return
+  }
+
+  // Check if profile already has data to avoid overriding existing information
+  const { data: existingProfile } = await supabase
+    .from("user_profiles")
+    .select("first_name, last_name, avatar")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  // Only update if profile doesn't have first_name or last_name
+  if (existingProfile?.first_name && existingProfile?.last_name) {
+    console.log("Profile already has name data, skipping OAuth update")
+    return
+  }
+
+  // Extract profile data from user metadata
+  const userMetadata = user.user_metadata || {}
+  const appMetadata = user.app_metadata || {}
+
+  // LinkedIn OIDC provides data in user_metadata
+  const firstName = userMetadata.given_name || userMetadata.first_name
+  const lastName = userMetadata.family_name || userMetadata.last_name
+  const avatar = userMetadata.picture || userMetadata.avatar_url
+
+  console.log("OAuth profile data:", { firstName, lastName, avatar, userMetadata })
+
+  // Only update fields that have values and aren't already set
+  const updateData: any = {}
+
+  if (firstName && !existingProfile?.first_name) {
+    updateData.first_name = firstName
+  }
+
+  if (lastName && !existingProfile?.last_name) {
+    updateData.last_name = lastName
+  }
+
+  if (avatar && !existingProfile?.avatar) {
+    updateData.avatar = avatar
+  }
+
+  // Only update if we have data to update
+  if (Object.keys(updateData).length > 0) {
+    updateData.updated_at = new Date().toISOString()
+
+    const { error: updateError } = await supabase.from("user_profiles").upsert({
+      id: user.id,
+      ...updateData,
+    })
+
+    if (updateError) {
+      console.error("Failed to update profile from OAuth:", updateError)
+    } else {
+      console.log("Successfully updated profile from OAuth:", updateData)
+    }
+  }
+}
