@@ -13,7 +13,7 @@ export async function DashboardSubscriptionCardGroup() {
         <CardTitle className="flex justify-between items-center pb-6 border-border border-b">
           <span className={"text-xl font-medium"}>Active subscriptions</span>
           <Button asChild={true} size={"sm"} variant={"outline"} className={"text-sm rounded-sm border-border"}>
-            <Link href={"/dashboard/subscriptions"}>View all</Link>
+            <Link href={"/settings/subscriptions"}>View all</Link>
           </Button>
         </CardTitle>
       </CardHeader>

@@ -1,8 +1,5 @@
-import Link from "next/link"
-import Image from "next/image"
 import { ReactNode } from "react"
-import { DashboardGradient } from "@/components/gradients/dashboard-gradient"
-import "../../../styles/dashboard.css"
+import "../../../styles/settings.css"
 import { SettingsMenuBar } from "@/components/settings/layout/settings-menu-bar"
 
 interface Props {

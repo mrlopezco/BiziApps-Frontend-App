@@ -51,7 +51,8 @@ export function DeleteAccountDialog() {
         setIsOpen(false)
         // Redirect is handled by the server action
       }
-    } catch (error) {
+    } catch {
+      // Removed 'err' from here
       toast({
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",

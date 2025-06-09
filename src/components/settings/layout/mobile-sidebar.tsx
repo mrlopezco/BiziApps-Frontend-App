@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
-import { DashboardMenuBar } from "@/components/settings/layout/settings-menu-bar"
+import { SettingsMenuBar } from "@/components/settings/layout/settings-menu-bar"
 
 export function MobileSidebar() {
   return (
@@ -13,7 +13,7 @@ export function MobileSidebar() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col">
-        <DashboardMenuBar />
+        <SettingsMenuBar />
       </SheetContent>
     </Sheet>
   )

@@ -42,7 +42,7 @@ export function DashboardTeamMembersCard() {
             <span className={"text-base leading-4 text-secondary"}>Invite your team members to collaborate</span>
           </div>
           <Button asChild={true} size={"sm"} variant={"outline"} className={"text-sm rounded-sm border-border"}>
-            <Link href={"/dashboard/subscriptions"}>
+            <Link href={"/settings/subscriptions"}>
               <Plus size={16} className={"text-muted-foreground"} />
             </Link>
           </Button>

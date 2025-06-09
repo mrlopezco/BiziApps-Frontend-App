@@ -129,7 +129,28 @@ export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogPr
 
   const formatJobAttributes = () => {
     const attributes = []
-    if (job.job_type) attributes.push(job.job_type)
+
+    // Handle job_type which might be an array or string
+    if (job.job_type) {
+      if (Array.isArray(job.job_type)) {
+        // If it's an array, add all types
+        attributes.push(...job.job_type)
+      } else if (typeof job.job_type === "string") {
+        // Try to parse as JSON array first
+        try {
+          const parsedArray = JSON.parse(job.job_type)
+          if (Array.isArray(parsedArray)) {
+            attributes.push(...parsedArray)
+          } else {
+            attributes.push(job.job_type)
+          }
+        } catch {
+          // If parsing fails, treat as regular string
+          attributes.push(job.job_type)
+        }
+      }
+    }
+
     if (job.is_remote) attributes.push("Remote")
     if (job.visa_sponsorship) attributes.push("Visa Sponsorship")
     if (job.min_experience_years) attributes.push(`${job.min_experience_years}+ years`)

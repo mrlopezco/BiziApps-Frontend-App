@@ -1,6 +1,6 @@
 "use client"
 
-import { Album, Briefcase, CreditCard, Home, User, Bookmark } from "lucide-react"
+import { Home, Bookmark } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils" // Assuming you have this utility for classnames
@@ -19,7 +19,7 @@ const sidebarItems = [
   // {
   //   title: "Subscriptions",
   //   icon: <Album className="h-5 w-5" />,
-  //   href: "/dashboard/subscriptions",
+  //   href: "/settings/subscriptions",
   // },
   // {
   //   title: "Payments",

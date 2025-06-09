@@ -71,10 +71,11 @@ const FALLBACK_CONSTANTS: JobConstants = {
     { value: "powershell", label: "PowerShell" },
   ],
   jobTypes: [
-    { value: "full-time", label: "Full-time" },
+    { value: "fulltime", label: "Fulltime" },
     { value: "part-time", label: "Part-time" },
     { value: "contract", label: "Contract" },
     { value: "freelance", label: "Freelance" },
+    { value: "temporary", label: "Temporary" },
     { value: "internship", label: "Internship" },
   ],
   countries: [

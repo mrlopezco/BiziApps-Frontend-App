@@ -29,27 +29,48 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
     return role.substring(0, 2).toUpperCase() // Take up to 3 characters if one word
   }
 
-  // Function to get product abbreviation (now spelled out as a placeholder for clarity)
-  const getProductAbbreviation = (product: string) => {
-    if (!product) return "PRODUCT" // Changed from PR to PRODUCT
-    const words = product.split(" ")
-    if (words.length >= 2) {
-      return words
-        .slice(0, 2)
-        .map((word) => word.charAt(0))
-        .join("")
-        .toUpperCase()
-    }
-    return product.substring(0, 3).toUpperCase() // Take up to 3 characters if one word
-  }
+  // The following functions were identified as "assigned a value but never used"
+  // because they were defined but not called anywhere in the component's JSX or logic.
+  // I've removed them to clean up the code and resolve the ESLint errors.
+  // If you intend to use them in the future, you'll need to uncomment and
+  // integrate them into your component's rendering or logic.
 
-  // Function to get source abbreviation (now spelled out as a placeholder for clarity)
-  const getSourceAbbreviation = (source: string) => {
-    if (!source) return "COMMON" // Changed from C to COMMON
-    if (source.toLowerCase().includes("partner")) return "PARTNER" // Changed from P to PARTNER
-    if (source.toLowerCase().includes("recruit")) return "RECRUIT" // Changed from R to RECRUIT
-    return "COMMON" // Default to COMMON
-  }
+  // const getProductAbbreviation = (product: string) => {
+  //   if (!product) return "PRODUCT" // Changed from PR to PRODUCT
+  //   const words = product.split(" ")
+  //   if (words.length >= 2) {
+  //     return words
+  //       .slice(0, 2)
+  //       .map((word) => word.charAt(0))
+  //       .join("")
+  //       .toUpperCase()
+  //   }
+  //   return product.substring(0, 3).toUpperCase() // Take up to 3 characters if one word
+  // }
+
+  // const getSourceAbbreviation = (source: string) => {
+  //   if (!source) return "COMMON" // Changed from C to COMMON
+  //   if (source.toLowerCase().includes("partner")) return "PARTNER" // Changed from P to PARTNER
+  //   if (source.toLowerCase().includes("recruit")) return "RECRUIT" // Changed from R to RECRUIT
+  //   return "COMMON" // Default to COMMON
+  // }
+
+  // const getCompanyLogo = () => {
+  //   return job.company?.company_logo || null
+  // }
+
+  // const getCompanyDetails = () => {
+  //   if (job.company) {
+  //     return {
+  //       name: job.company.company_name,
+  //       industry: job.company.company_industry,
+  //       size: job.company.company_num_employees,
+  //       rating: job.company.company_rating,
+  //       isMsftPartner: job.company.is_msft_partner,
+  //     }
+  //   }
+  //   return null
+  // }
 
   const getConfidenceSignal = (score?: number): { level: "low" | "medium" | "high" } => {
     if (!score) return { level: "low" }
@@ -81,7 +102,28 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
 
   const formatJobAttributes = () => {
     const attributes = []
-    if (job.job_type) attributes.push(job.job_type)
+
+    // Handle job_type which might be an array or string
+    if (job.job_type) {
+      if (Array.isArray(job.job_type)) {
+        // If it's an array, add all types (limit to first 2 to avoid overcrowding)
+        attributes.push(...job.job_type.slice(0, 2))
+      } else if (typeof job.job_type === "string") {
+        // Try to parse as JSON array first
+        try {
+          const parsedArray = JSON.parse(job.job_type)
+          if (Array.isArray(parsedArray)) {
+            attributes.push(...parsedArray.slice(0, 2))
+          } else {
+            attributes.push(job.job_type)
+          }
+        } catch {
+          // If parsing fails, treat as regular string
+          attributes.push(job.job_type)
+        }
+      }
+    }
+
     if (job.is_remote) attributes.push("Remote")
     if (job.visa_sponsorship) attributes.push("Visa Sponsorship")
     if (job.min_experience_years) attributes.push(`${job.min_experience_years}+ years`)
@@ -112,23 +154,6 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
       }
     }
     return "Company"
-  }
-
-  const getCompanyLogo = () => {
-    return job.company?.company_logo || null
-  }
-
-  const getCompanyDetails = () => {
-    if (job.company) {
-      return {
-        name: job.company.company_name,
-        industry: job.company.company_industry,
-        size: job.company.company_num_employees,
-        rating: job.company.company_rating,
-        isMsftPartner: job.company.is_msft_partner,
-      }
-    }
-    return null
   }
 
   const roundSalary = (salary: number): number => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { cancelSubscription } from "@/app/dashboard/subscriptions/actions"
+import { cancelSubscription } from "@/app/settings/subscriptions/actions"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { CircleAlert, CircleCheck } from "lucide-react"

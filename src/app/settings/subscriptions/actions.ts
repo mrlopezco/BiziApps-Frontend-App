@@ -17,7 +17,7 @@ export async function cancelSubscription(subscriptionId: string): Promise<Subscr
 
     const subscription = await paddle.subscriptions.cancel(subscriptionId, { effectiveFrom: "next_billing_period" })
     if (subscription) {
-      revalidatePath("/dashboard/subscriptions")
+      revalidatePath("/settings/subscriptions")
     }
     return JSON.parse(JSON.stringify(subscription))
   } catch (e) {

@@ -150,7 +150,7 @@ export async function updateProfileFromOAuth() {
 
   // Extract profile data from user metadata
   const userMetadata = user.user_metadata || {}
-  const appMetadata = user.app_metadata || {}
+  // const appMetadata = user.app_metadata || {}; // 'appMetadata' is assigned a value but never used.
 
   // LinkedIn OIDC provides data in user_metadata
   const firstName = userMetadata.given_name || userMetadata.first_name
@@ -160,7 +160,7 @@ export async function updateProfileFromOAuth() {
   console.log("OAuth profile data:", { firstName, lastName, avatar, userMetadata })
 
   // Only update fields that have values and aren't already set
-  const updateData: any = {}
+  const updateData: Partial<UserProfile> = {} // Removed 'any' and specified a more precise type
 
   if (firstName && !existingProfile?.first_name) {
     updateData.first_name = firstName

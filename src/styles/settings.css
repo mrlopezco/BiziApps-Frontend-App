@@ -5,7 +5,7 @@
 }
 
 .grain-background {
-  background: url('/assets/background/grain-bg.svg') repeat;
+  background: url("/assets/background/grain-bg.svg") repeat;
 }
 
 .dashboard-shared-top-grainy-blur {
@@ -24,7 +24,7 @@
   filter: blur(26px);
 }
 .dashboard-shared-top-grainy-blur::before {
-  content: '';
+  content: "";
   left: 55px;
   position: absolute;
   width: 101px;
@@ -53,7 +53,7 @@
 }
 
 .dashboard-shared-bottom-grainy-blur::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 394px;
   height: 648px;
@@ -82,7 +82,7 @@
 }
 
 .dashboard-sidebar-highlight:after {
-  content: '';
+  content: "";
   width: 248px;
   height: 1px;
   position: absolute;
@@ -98,7 +98,7 @@
 }
 
 .dashboard-header-highlight::after {
-  content: '';
+  content: "";
   width: 248px;
   height: 1px;
   position: absolute;

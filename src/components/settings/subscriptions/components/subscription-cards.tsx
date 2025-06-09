@@ -44,7 +44,7 @@ export function SubscriptionCards({ subscriptions, className }: Props) {
                         height={48}
                       />
                     )}
-                    <Link href={`/dashboard/subscriptions/${subscription.id}`}>
+                    <Link href={`/settings/subscriptions/${subscription.id}`}>
                       <ArrowRight size={20} />
                     </Link>
                   </div>

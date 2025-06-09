@@ -20,7 +20,6 @@ interface JobSearchBarProps {
 
 export interface JobFilters {
   remote?: boolean
-  visaSponsorship?: boolean
 }
 
 interface JobConstants {
@@ -243,11 +242,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
     setFilters(newFilters)
   }
 
-  const handleVisaSponsorshipFilterChange = (value: boolean) => {
-    const newFilters = { ...filters, visaSponsorship: value || undefined }
-    setFilters(newFilters)
-  }
-
   const clearJobRole = () => setJobRole("all")
   const clearPrimaryProduct = () => setPrimaryProduct("all")
   const clearLocationCountry = () => setLocationCountry("all")
@@ -255,11 +249,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
   const clearRemoteFilter = () => {
     const newFilters = { ...filters }
     delete newFilters.remote
-    setFilters(newFilters)
-  }
-  const clearVisaSponsorshipFilter = () => {
-    const newFilters = { ...filters }
-    delete newFilters.visaSponsorship
     setFilters(newFilters)
   }
 
@@ -296,8 +285,7 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
       isFilterActive(primaryProduct) ||
       isFilterActive(locationCountry) ||
       isFilterActive(jobType) ||
-      isBooleanFilterActive(filters.remote) ||
-      isBooleanFilterActive(filters.visaSponsorship)
+      isBooleanFilterActive(filters.remote)
     )
   }
 
@@ -382,28 +370,6 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           <Button variant={isBooleanFilterActive(filters.remote) ? "default" : "outline"} size="sm" className="h-10">
             Remote Work
             {isBooleanFilterActive(filters.remote) && (
-              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
-                1
-              </Badge>
-            )}
-          </Button>
-        </BooleanFilterDialog>
-
-        {/* Visa Sponsorship Filter */}
-        <BooleanFilterDialog
-          title="Visa Sponsorship"
-          description="Show only jobs that offer visa sponsorship"
-          currentValue={filters.visaSponsorship || false}
-          onApply={handleVisaSponsorshipFilterChange}
-          onClear={clearVisaSponsorshipFilter}
-        >
-          <Button
-            variant={isBooleanFilterActive(filters.visaSponsorship) ? "default" : "outline"}
-            size="sm"
-            className="h-10"
-          >
-            Visa Sponsorship
-            {isBooleanFilterActive(filters.visaSponsorship) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
                 1
               </Badge>

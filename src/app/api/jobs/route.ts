@@ -40,6 +40,7 @@ export async function GET(request: Request) {
       `,
         { count: "exact" },
       )
+      .order("relevance_score", { ascending: false })
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -57,7 +58,10 @@ export async function GET(request: Request) {
     }
 
     if (job_type && job_type !== "all") {
-      query = query.eq("job_type", job_type)
+      // Handle job_type which might be stored as an array or string
+      // We use ILIKE with JSON-style matching to catch arrays stored as JSON strings
+      // This will match: "Contract" in ["Contract","Fulltime"] or just "Contract"
+      query = query.or(`job_type.eq.${job_type},job_type.ilike.%"${job_type}"%,job_type.ilike.%${job_type}%`)
     }
 
     if (remote === "true") {

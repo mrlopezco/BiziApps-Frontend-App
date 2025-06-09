@@ -14,7 +14,6 @@ interface JobFiltersProps {
 
 export interface JobFilters {
   remote?: boolean
-  visaSponsorship?: boolean
   salaryRange?: [number, number]
   experienceYears?: [number, number]
 }
@@ -72,19 +71,6 @@ export function JobFilters({ onFiltersChange, appliedFilters }: JobFiltersProps)
 
         <Separator />
 
-        {/* Visa Sponsorship */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium">Visa Sponsorship</h4>
-          <Button
-            variant={filters.visaSponsorship ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleFilterChange("visaSponsorship", !filters.visaSponsorship)}
-            className="w-full justify-start"
-          >
-            Offers Visa Sponsorship
-          </Button>
-        </div>
-
         {/* Active Filters Summary */}
         {hasActiveFilters && (
           <>
@@ -95,11 +81,6 @@ export function JobFilters({ onFiltersChange, appliedFilters }: JobFiltersProps)
                 {filters.remote && (
                   <Badge variant="secondary" className="text-xs">
                     Remote
-                  </Badge>
-                )}
-                {filters.visaSponsorship && (
-                  <Badge variant="secondary" className="text-xs">
-                    Visa Sponsorship
                   </Badge>
                 )}
               </div>

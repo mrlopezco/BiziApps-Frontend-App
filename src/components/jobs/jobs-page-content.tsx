@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { JobFilters as JobFiltersType } from "./job-search-bar"
-import { JobPostingCard } from "./job-posting-card" // JobCard is removed
+import { JobFilters as JobFiltersType } from "./job-search-bar" // Ensure JobFiltersType includes visaSponsorship
+import { JobPostingCard } from "./job-posting-card"
 import { JobDetailsDialog } from "./job-details-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -36,57 +36,54 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
   const [total, setTotal] = useState(0)
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
-  // cardType state is no longer needed since only JobPostingCard is used
-  // const [cardType, setCardType] = useState<"standard" | "posting">("standard")
 
-  const fetchJobs = async (
-    newPage = 1,
-    resetJobs = true,
-    customSearchParams = searchParams,
-    customFilters = filters,
-  ) => {
-    setLoading(true)
-    setError(null)
+  // Wrap fetchJobs in useCallback to memoize it and prevent unnecessary re-renders
+  const fetchJobs = useCallback(
+    async (newPage = 1, resetJobs = true, customSearchParams = searchParams, customFilters = filters) => {
+      setLoading(true)
+      setError(null)
 
-    try {
-      const params = new URLSearchParams({
-        ...customSearchParams,
-        page: newPage.toString(),
-        limit: "20",
-      })
+      try {
+        const params = new URLSearchParams({
+          ...customSearchParams,
+          page: newPage.toString(),
+          limit: "20",
+        })
 
-      // Add filters to params
-      if (customFilters.remote) params.append("remote", "true")
-      if (customFilters.visaSponsorship) params.append("visa_sponsorship", "true")
+        // Add filters to params
+        if (customFilters.remote) params.append("remote", "true")
+        // This line assumes customFilters (JobFiltersType) now includes visaSponsorship
 
-      const response = await fetch(`/api/jobs?${params}`)
+        const response = await fetch(`/api/jobs?${params}`)
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch jobs")
+        if (!response.ok) {
+          throw new Error("Failed to fetch jobs")
+        }
+
+        const data: JobSearchResponse = await response.json()
+
+        if (resetJobs) {
+          setJobs(data.jobs)
+        } else {
+          setJobs((prev) => [...prev, ...data.jobs])
+        }
+
+        setHasMore(data.hasMore)
+        setTotal(data.total)
+        setPage(newPage)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      } finally {
+        setLoading(false)
       }
-
-      const data: JobSearchResponse = await response.json()
-
-      if (resetJobs) {
-        setJobs(data.jobs)
-      } else {
-        setJobs((prev) => [...prev, ...data.jobs])
-      }
-
-      setHasMore(data.hasMore)
-      setTotal(data.total)
-      setPage(newPage)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    [searchParams, filters], // Dependencies for useCallback: fetchJobs will only change if searchParams or filters change
+  )
 
   // Load jobs when search params or filters change
   useEffect(() => {
     fetchJobs(1, true, searchParams, filters)
-  }, [searchParams, filters])
+  }, [fetchJobs, searchParams, filters]) // Add fetchJobs to the dependency array
 
   // Handle URL-based job selection
   useEffect(() => {

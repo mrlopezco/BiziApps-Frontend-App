@@ -36,7 +36,7 @@ export function ResetPasswordForm() {
     // Listen for auth state changes, specifically PASSWORD_RECOVERY
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsValidSession(true)
         setIsCheckingSession(false)
@@ -79,13 +79,13 @@ export function ResetPasswordForm() {
           router.push("/login")
         }, 2000)
       }
-    } catch (error) {
+    } catch {
+      // Removed 'err' from here
       toast({ description: "Something went wrong. Please try again", variant: "destructive" })
     } finally {
       setIsLoading(false)
     }
   }
-
   if (isCheckingSession) {
     return (
       <div className={"px-6 md:px-16 pb-6 py-8 gap-6 flex flex-col items-center justify-center"}>

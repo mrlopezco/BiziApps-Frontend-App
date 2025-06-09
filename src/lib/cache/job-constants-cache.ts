@@ -77,10 +77,11 @@ const FALLBACK_PRIMARY_PRODUCTS = [
 ]
 
 const FALLBACK_JOB_TYPES = [
-  { value: "full-time", label: "Full-time" },
+  { value: "fulltime", label: "Fulltime" },
   { value: "part-time", label: "Part-time" },
   { value: "contract", label: "Contract" },
   { value: "freelance", label: "Freelance" },
+  { value: "temporary", label: "Temporary" },
   { value: "internship", label: "Internship" },
 ]
 
@@ -162,18 +163,47 @@ async function fetchJobTypesFromDB(): Promise<JobConstants["jobTypes"]> {
   try {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
-      .from("transformed_jobs")
-      .select("job_type")
-      .not("job_type", "is", null)
-      .order("job_type")
+    const { data, error } = await supabase.from("transformed_jobs").select("job_type").not("job_type", "is", null)
 
     if (error) throw error
 
-    const uniqueTypes = [...new Set(data.map((item) => item.job_type))].filter(Boolean).map((type) => ({
-      value: type,
-      label: type.charAt(0).toUpperCase() + type.slice(1),
-    }))
+    // Flatten arrays and get unique values
+    const allJobTypes: string[] = []
+
+    data.forEach((item) => {
+      if (item.job_type) {
+        // Handle both array and string formats
+        if (Array.isArray(item.job_type)) {
+          allJobTypes.push(...item.job_type)
+        } else if (typeof item.job_type === "string") {
+          // Try to parse as JSON array first
+          try {
+            const parsedArray = JSON.parse(item.job_type)
+            if (Array.isArray(parsedArray)) {
+              allJobTypes.push(...parsedArray)
+            } else {
+              allJobTypes.push(item.job_type)
+            }
+          } catch {
+            // If parsing fails, treat as regular string
+            allJobTypes.push(item.job_type)
+          }
+        }
+      }
+    })
+
+    // Get unique values and create properly formatted labels
+    const uniqueTypes = [...new Set(allJobTypes)]
+      .filter(Boolean)
+      .filter((type) => typeof type === "string" && type.trim() !== "")
+      .map((type) => {
+        const cleanType = type.trim()
+        return {
+          value: cleanType.toLowerCase().replace(/\s+/g, "-"),
+          label: cleanType.charAt(0).toUpperCase() + cleanType.slice(1).toLowerCase(),
+        }
+      })
+      .sort((a, b) => a.label.localeCompare(b.label))
 
     return uniqueTypes.length > 0 ? uniqueTypes : FALLBACK_JOB_TYPES
   } catch (error) {

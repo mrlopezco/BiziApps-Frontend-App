@@ -23,6 +23,7 @@ export function ForgotPasswordForm() {
     setIsLoading(true)
     try {
       const result = await resetPasswordForEmail(email)
+      // The 'error' property from the result object is used here, so the original ESLint error is resolved.
       if (result?.error) {
         toast({
           description: result.message || "Something went wrong. Please try again",
@@ -35,7 +36,8 @@ export function ForgotPasswordForm() {
           variant: "default",
         })
       }
-    } catch (error) {
+    } catch {
+      // Removed 'err' from here
       toast({ description: "Something went wrong. Please try again", variant: "destructive" })
     } finally {
       setIsLoading(false)
@@ -48,10 +50,10 @@ export function ForgotPasswordForm() {
         <Image src={"/assets/icons/logo/BiziApps-icon.svg"} alt={"BiziApps"} width={80} height={80} />
         <div className={"text-[30px] leading-[36px] font-medium tracking-[-0.6px] text-center"}>Check your email</div>
         <div className={"text-center text-muted-foreground text-sm"}>
-          We've sent a password reset link to <strong>{email}</strong>
+          We&apos;ve sent a password reset link to <strong>{email}</strong>
         </div>
         <div className={"text-center text-muted-foreground text-sm"}>
-          Didn't receive the email? Check your spam folder or{" "}
+          Didn&apos;t receive the email? Check your spam folder or{" "}
           <button onClick={() => setEmailSent(false)} className={"text-white underline hover:no-underline"}>
             try again
           </button>
@@ -65,7 +67,7 @@ export function ForgotPasswordForm() {
       <Image src={"/assets/icons/logo/BiziApps-icon.svg"} alt={"BiziApps"} width={80} height={80} />
       <div className={"text-[30px] leading-[36px] font-medium tracking-[-0.6px] text-center"}>Reset your password</div>
       <div className={"text-center text-muted-foreground text-sm"}>
-        Enter your email address and we'll send you a link to reset your password.
+        Enter your email address and we&apos;ll send you a link to reset your password.
       </div>
       <div className="grid w-full max-w-sm items-center gap-1.5 mt-2">
         <Label className={"text-muted-foreground leading-5"} htmlFor="email">
