@@ -11,7 +11,6 @@ const sidebarItems = [
     icon: <Home className="h-5 w-5" />, // Reduced icon size for horizontal display
     href: "/dashboard",
   },
-
   {
     title: "Bookmarks",
     icon: <Bookmark className="h-5 w-5" />,
@@ -32,10 +31,8 @@ const sidebarItems = [
 export function DashboardMenuBar() {
   const pathname = usePathname()
   return (
-    <div className="w-full bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-3">
-       {" "}
+    <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3">
       <nav className="flex flex-wrap gap-2 justify-center text-sm font-medium">
-        {" "}
         {sidebarItems.map((item) => (
           <Link
             key={item.title}
@@ -48,10 +45,10 @@ export function DashboardMenuBar() {
                 : pathname.includes(item.href)),
             })}
           >
-            {item.icon} {item.title}{" "}
+            {item.icon} {item.title}
           </Link>
-        ))}{" "}
-      </nav>{" "}
+        ))}
+      </nav>
     </div>
   )
 }
