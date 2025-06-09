@@ -1,4 +1,7 @@
+"use client" // Add this directive at the top for client-side hooks
+
 import Link from "next/link"
+import { usePathname } from "next/navigation" // Import usePathname
 import { User } from "@supabase/supabase-js"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -18,12 +21,13 @@ interface Props {
 }
 
 export default function Header({ data }: Props) {
+  const pathname = usePathname() // Get the current pathname
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/assets/icons/logo/BiziApps-logo-icon.svg" alt="BiziApps" width={32} height={32} />
           <span className="font-semibold text-lg">BiziApps</span>
         </Link>
 
@@ -31,14 +35,18 @@ export default function Header({ data }: Props) {
         <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+              pathname === "/" ? "text-white" : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             <Home className="h-4 w-4" />
             Home
           </Link>
           <Link
             href="/jobs"
-            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+              pathname === "/jobs" ? "text-white" : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             <Briefcase className="h-4 w-4" />
             Jobs
@@ -77,9 +85,9 @@ export default function Header({ data }: Props) {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center">
+                  <Link href="/settings" className="flex items-center">
                     <UserIcon className="mr-2 h-4 w-4" />
-                    Profile
+                    Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
