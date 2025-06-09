@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { useState, useTransition } from "react"
 import { toggleJobBookmark } from "@/lib/actions/job-interactions"
+import Flag from "react-world-flags" // Import the Flag component
 
 interface JobPostingCardProps {
   job: JobWithInteraction
@@ -14,9 +15,9 @@ interface JobPostingCardProps {
 }
 
 export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
-  // Generate two-letter abbreviations
+  // Function to get role abbreviation (now spelled out as a placeholder for clarity)
   const getRoleAbbreviation = (role: string) => {
-    if (!role) return "JB"
+    if (!role) return "JOB" // Changed from JB to JOB for full word
     const words = role.split(" ")
     if (words.length >= 2) {
       return words
@@ -25,11 +26,12 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
         .join("")
         .toUpperCase()
     }
-    return role.substring(0, 2).toUpperCase()
+    return role.substring(0, 2).toUpperCase() // Take up to 3 characters if one word
   }
 
+  // Function to get product abbreviation (now spelled out as a placeholder for clarity)
   const getProductAbbreviation = (product: string) => {
-    if (!product) return "PR"
+    if (!product) return "PRODUCT" // Changed from PR to PRODUCT
     const words = product.split(" ")
     if (words.length >= 2) {
       return words
@@ -38,37 +40,15 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
         .join("")
         .toUpperCase()
     }
-    return product.substring(0, 2).toUpperCase()
+    return product.substring(0, 3).toUpperCase() // Take up to 3 characters if one word
   }
 
+  // Function to get source abbreviation (now spelled out as a placeholder for clarity)
   const getSourceAbbreviation = (source: string) => {
-    if (!source) return "C"
-    // Default mapping - you can customize this based on your source types
-    if (source.toLowerCase().includes("partner")) return "P"
-    if (source.toLowerCase().includes("recruit")) return "R"
-    return "C"
-  }
-
-  const getCountryFlag = (country: string) => {
-    if (!country) return "🌍"
-    // Simple country flag mapping - you can expand this
-    const flagMap: { [key: string]: string } = {
-      "united states": "🇺🇸",
-      usa: "🇺🇸",
-      canada: "🇨🇦",
-      "united kingdom": "🇬🇧",
-      uk: "🇬🇧",
-      germany: "🇩🇪",
-      france: "🇫🇷",
-      spain: "🇪🇸",
-      italy: "🇮🇹",
-      netherlands: "🇳🇱",
-      australia: "🇦🇺",
-      japan: "🇯🇵",
-      india: "🇮🇳",
-      singapore: "🇸🇬",
-    }
-    return flagMap?.[country.toLowerCase()] || "🌍"
+    if (!source) return "COMMON" // Changed from C to COMMON
+    if (source.toLowerCase().includes("partner")) return "PARTNER" // Changed from P to PARTNER
+    if (source.toLowerCase().includes("recruit")) return "RECRUIT" // Changed from R to RECRUIT
+    return "COMMON" // Default to COMMON
   }
 
   const getConfidenceSignal = (score?: number): { level: "low" | "medium" | "high" } => {
@@ -109,17 +89,19 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
   }
 
   const formatLocation = () => {
+    if (job.is_remote) return "Remote" // Display "Remote" if is_remote is true
     const parts = []
-    if (job.location_city) parts.push(job.location_city)
+    if (job.location_city && job.location_city !== "Remote") parts.push(job.location_city) // Only add city if it's not "Remote"
     if (job.location_country) parts.push(job.location_country)
     return parts.join(", ") || "Remote"
   }
 
   const getCompanyName = () => {
-    // Since the Job type doesn't seem to have a direct company field,
-    // we'll try to extract it from source_site or use a placeholder
+    if (job.company?.company_name) {
+      return job.company.company_name
+    }
+
     if (job.source_site) {
-      // Clean up common job site names
       const cleanSite = job.source_site
         .replace(/\.com|\.co\.uk|\.org/gi, "")
         .replace(/jobs|careers|hiring/gi, "")
@@ -132,12 +114,28 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
     return "Company"
   }
 
+  const getCompanyLogo = () => {
+    return job.company?.company_logo || null
+  }
+
+  const getCompanyDetails = () => {
+    if (job.company) {
+      return {
+        name: job.company.company_name,
+        industry: job.company.company_industry,
+        size: job.company.company_num_employees,
+        rating: job.company.company_rating,
+        isMsftPartner: job.company.is_msft_partner,
+      }
+    }
+    return null
+  }
+
   const roundSalary = (salary: number): number => {
     const salaryString = salary.toString()
     const length = salaryString.length
 
-    // Determine how many digits to round based on the length
-    const roundTo = length > 2 ? length - 2 : 0 // Round to last 2 digits for 3 digits, last 3 for 4 digits, etc.
+    const roundTo = length > 2 ? length - 2 : 0
 
     return Math.floor(salary / Math.pow(10, roundTo)) * Math.pow(10, roundTo)
   }
@@ -149,15 +147,13 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
   const [isHovering, setIsHovering] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Local state for optimistic updates
   const [localBookmarkState, setLocalBookmarkState] = useState(job.user_interaction?.is_favorite ?? false)
 
   const isBookmarked = localBookmarkState
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering onViewDetails
+    e.stopPropagation()
 
-    // Optimistically update the UI
     const newBookmarkState = !localBookmarkState
     setLocalBookmarkState(newBookmarkState)
 
@@ -165,16 +161,44 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
       const result = await toggleJobBookmark(job.id)
 
       if (!result.success) {
-        // Revert the optimistic update if the server action failed
         setLocalBookmarkState(localBookmarkState)
       }
     })
   }
 
+  // Helper function to normalize country input to a 2-letter or 3-letter ISO code
+  const getNormalizedCountryCode = (country: string): string => {
+    if (!country) return ""
+
+    const lowerCountry = country.toLowerCase()
+
+    // Mapping common full names or variations to 2-letter ISO codes
+    if (lowerCountry === "united states" || lowerCountry === "usa") return "US"
+    if (lowerCountry === "canada") return "CA"
+    if (lowerCountry === "united kingdom" || lowerCountry === "uk") return "GB" // ISO code for UK is GB
+    if (lowerCountry === "germany") return "DE"
+    if (lowerCountry === "france") return "FR"
+    if (lowerCountry === "spain") return "ES"
+    if (lowerCountry === "italy") return "IT"
+    if (lowerCountry === "netherlands") return "NL"
+    if (lowerCountry === "australia") return "AU"
+    if (lowerCountry === "japan") return "JP"
+    if (lowerCountry === "india") return "IN"
+    if (lowerCountry === "singapore") return "SG"
+    // Add more mappings as needed for other countries you expect
+
+    // If it's already a 2-letter or 3-letter code, return it as is (uppercased)
+    if (country.length === 2 || country.length === 3) {
+      return country.toUpperCase()
+    }
+
+    // Return empty string if no recognized code is found, triggering the fallback
+    return ""
+  }
+
   return (
-    <Card className="rounded-lg bg-background/50 backdrop-blur-[24px]  hover:shadow-lg transition-all duration-200 border-secondary h-64 flex flex-col bg-white text-black min-h-[300px]">
+    <Card className="rounded-lg bg-background/50 backdrop-blur-[24px] hover:shadow-lg transition-all duration-200 border-secondary h-64 flex flex-col bg-white text-black min-h-[300px]">
       <CardContent className="p-0 flex flex-col h-full">
-        {/* Combined Top + Middle Section - 80% Height */}
         <div
           onClick={onViewDetails}
           className={cn(
@@ -182,11 +206,8 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
             getBackgroundColor(confidenceSignal.level),
           )}
         >
-          {/* Top Area - Icons and Signal */}
           <div className="flex justify-between items-center mb-4">
-            {/* Top Left - Icons */}
             <div className="flex items-center gap-1.5">
-              {/* Role Icon */}
               <Tooltip>
                 <TooltipTrigger>
                   <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
@@ -195,38 +216,45 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
                 </TooltipTrigger>
                 <TooltipContent>{job.job_role}</TooltipContent>
               </Tooltip>
-              {/* Product Icon */}
-              <Tooltip>
+
+              {/* <Tooltip>
                 <TooltipTrigger>
                   <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
                     {getProductAbbreviation(job.primary_product || "")}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>{job.primary_product}</TooltipContent>
-              </Tooltip>
-              {/* Source Abbreviation */}
-              <Tooltip>
-                <TooltipTrigger>
-                  <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                    {getSourceAbbreviation(job.source_site || "")}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>{job.source_site}</TooltipContent>
-              </Tooltip>
-              {/* Country Flag */}
-              <Tooltip>
-                <TooltipTrigger>
-                  <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                    {getCountryFlag(job.location_country || "")}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>{job.location_country}</TooltipContent>
-              </Tooltip>
+              </Tooltip> */}
+
+              {/* Microsoft Partner Badge */}
+              {job.company?.is_msft_partner && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                      P
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>Microsoft Partner</TooltipContent>
+                </Tooltip>
+              )}
+
+              {job.location_country && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground overflow-hidden">
+                      <Flag
+                        code={getNormalizedCountryCode(job.location_country)}
+                        fallback={<span className="text-muted-foreground">🌍</span>}
+                        className="w-full h-full object-cover p-1"
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>{job.location_country}</TooltipContent>
+                </Tooltip>
+              )}
             </div>
 
-            {/* Top Right - Confidence Signal */}
             <div className="flex items-center">
-              {/* <SignalBars level={confidenceSignal.level} /> */}
               <Button
                 variant="default"
                 size="sm"
@@ -242,15 +270,11 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
             </div>
           </div>
 
-          {/* Middle Area - Content */}
           <div className="flex-1 flex flex-col justify-center text-left ">
-            {/* Company Name */}
             <p className="text-sm text-muted-foreground mb-1 truncate">{getCompanyName()}</p>
 
-            {/* Job Title */}
             <h3 className="text-lg font-semibold text- mb-3 line-clamp-2 leading-tight mb-2">{job.title}</h3>
 
-            {/* Job Attributes Bubbles */}
             <div className="flex flex-wrap justify-start gap-1">
               {formatJobAttributes()
                 .slice(0, 3)
@@ -267,16 +291,14 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
           </div>
         </div>
 
-        {/* Bottom Section - 20% Height */}
         <div className="flex justify-between h-[20%] min-h-[3rem] px-4 pb-4 items-center">
-          {/* Bottom Left - Action Buttons */}
           <div className="flex flex-col h-full justify-center">
             <span className="font-semibold">
               {job.min_salary !== null ? `$${formatSalary(roundSalary(job.min_salary))}` : ""}
             </span>
             <span className="text-xs text-muted-foreground mt-auto">{formatLocation()}</span>
           </div>
-          {/* Bottom Right - Primary CTA */}
+
           <Button
             onClick={onViewDetails}
             size="sm"

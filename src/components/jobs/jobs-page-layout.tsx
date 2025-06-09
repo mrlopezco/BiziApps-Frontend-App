@@ -30,7 +30,7 @@ export function JobsPageLayout({ profile }: JobsPageLayoutProps) {
   return (
     <div className="bg-grey">
       {/* Job Search Bar - Full Width */}
-      <div className="mb-6 bg-black">
+      <div className="mb-6 bg-black py-auto ">
         <JobSearchBar
           profile={profile}
           onSearch={handleSearch}

@@ -28,7 +28,7 @@ export default function Header({ data }: Props) {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-semibold text-lg">BiziApps</span>
+          <Image src={"/justbee_30.svg"} alt={"Biziapps"} width={32} height={32} />
         </Link>
 
         {/* Navigation */}

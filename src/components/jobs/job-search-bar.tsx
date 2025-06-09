@@ -302,7 +302,7 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
   }
 
   return (
-    <div className="w-full bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
+    <div className="w-full bg-background/50 backdrop-blur-[24px] border border-border rounded-lg h-16 flex items-center justify-center px-4">
       <div className="flex flex-wrap gap-3 justify-center">
         {/* Job Role Filter */}
         <FilterDialog

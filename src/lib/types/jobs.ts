@@ -1,3 +1,18 @@
+export interface Company {
+  id: string
+  company_name: string
+  company_industry: string | null
+  company_url: string | null
+  company_logo: string | null
+  company_num_employees: string | null
+  company_revenue: string | null
+  company_description: string | null
+  company_rating: number | null
+  company_reviews_count: number | null
+  updated_at: string | null
+  is_msft_partner: boolean | null
+}
+
 export interface Job {
   id: string
   title: string
@@ -25,6 +40,7 @@ export interface Job {
   secondary_product: string | null
   created_at: string
   updated_at: string | null
+  company?: Company | null
 }
 
 export interface JobSearchParams {

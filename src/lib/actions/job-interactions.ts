@@ -216,7 +216,10 @@ export async function getUserBookmarkedJobs(page = 1, limit = 20) {
       .select(
         `
         *,
-        transformed_jobs (*)
+        transformed_jobs (
+          *,
+          company:transformed_companies(*)
+        )
       `,
         { count: "exact" },
       )

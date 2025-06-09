@@ -33,7 +33,13 @@ export async function GET(request: Request) {
     // Build query
     let query = supabase
       .from("transformed_jobs")
-      .select("*", { count: "exact" })
+      .select(
+        `
+        *,
+        company:transformed_companies(*)
+      `,
+        { count: "exact" },
+      )
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
 

@@ -144,6 +144,12 @@ export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogPr
   }
 
   const getCompanyName = () => {
+    // Use the actual company information from the joined table
+    if (job.company?.company_name) {
+      return job.company.company_name
+    }
+
+    // Fallback to extracting from source_site if company data is not available
     if (job.source_site) {
       const cleanSite = job.source_site
         .replace(/\.com|\.co\.uk|\.org/gi, "")
@@ -239,6 +245,12 @@ export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogPr
                 <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
                   {getSourceAbbreviation(job.source_site || "")}
                 </div>
+                {/* Microsoft Partner Badge */}
+                {job.company?.is_msft_partner && (
+                  <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                    P
+                  </div>
+                )}
                 <div className="w-6 h-6 bg-white/60 rounded flex items-center justify-center text-xs font-semibold text-muted-foreground">
                   {getCountryFlag(job.location_country || "")}
                 </div>
