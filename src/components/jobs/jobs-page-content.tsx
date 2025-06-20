@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { JobFilters as JobFiltersType } from "./job-search-bar" // Ensure JobFiltersType includes visaSponsorship
 import { JobPostingCard } from "./job-posting-card"
 import { JobDetailsDialog } from "./job-details-dialog"
+import { JobDataTable } from "./job-data-table"
+import { JobViewToggle, ViewType } from "./job-view-toggle"
+import { JobSortDropdown, SortOption, sortJobs } from "./job-sort-dropdown"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle, Loader2 } from "lucide-react"
@@ -36,6 +39,8 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
   const [total, setTotal] = useState(0)
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [viewType, setViewType] = useState<ViewType>("cards")
+  const [sortOption, setSortOption] = useState<SortOption>("featured")
 
   // Wrap fetchJobs in useCallback to memoize it and prevent unnecessary re-renders
   const fetchJobs = useCallback(
@@ -63,9 +68,9 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
         const data: JobSearchResponse = await response.json()
 
         if (resetJobs) {
-          setJobs(data.jobs)
+          setJobs(sortJobs(data.jobs, sortOption))
         } else {
-          setJobs((prev) => [...prev, ...data.jobs])
+          setJobs((prev) => sortJobs([...prev, ...data.jobs], sortOption))
         }
 
         setHasMore(data.hasMore)
@@ -77,13 +82,20 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
         setLoading(false)
       }
     },
-    [searchParams, filters], // Dependencies for useCallback: fetchJobs will only change if searchParams or filters change
+    [searchParams, filters, sortOption], // Dependencies for useCallback: fetchJobs will only change if searchParams, filters, or sortOption change
   )
 
-  // Load jobs when search params or filters change
+  // Load jobs when search params, filters, or sort option change
   useEffect(() => {
     fetchJobs(1, true, searchParams, filters)
   }, [fetchJobs, searchParams, filters]) // Add fetchJobs to the dependency array
+
+  // Apply sorting when sort option changes (for existing jobs)
+  useEffect(() => {
+    if (jobs.length > 0) {
+      setJobs((prevJobs) => sortJobs(prevJobs, sortOption))
+    }
+  }, [sortOption, jobs.length]) // Re-sort existing jobs when sort option changes
 
   // Handle URL-based job selection
   useEffect(() => {
@@ -136,12 +148,16 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
           {/* Results Header */}
           <div className="flex flex-col justify-between items-center mb-6">
             <div className="flex flex-col w-full items-start mb-6">
-              {" "}
-              {/* Changed justify-between and items-center */}
-              <div className="flex items-baseline gap-2">
-                <h2 className="text-xl font-semibold">Recommended Jobs</h2>
-                <div className="bg-primary hover:bg-primary/90 text-primary-foreground px-2 py-1 border-secondary border-1 rounded-md">
-                  <p className="">{loading ? "Loading..." : `${total}`}</p>
+              <div className="flex items-center justify-between w-full mb-4">
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-xl font-semibold">Recommended Jobs</h2>
+                  <div className="bg-primary hover:bg-primary/90 text-primary-foreground px-2 py-1 border-secondary border-1 rounded-md">
+                    <p className="">{loading ? "Loading..." : `${total}`}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <JobSortDropdown currentSort={sortOption} onSortChange={setSortOption} />
+                  <JobViewToggle view={viewType} onViewChange={setViewType} />
                 </div>
               </div>
             </div>
@@ -155,76 +171,73 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
             </Alert>
           )}
 
-          {/* Jobs Grid */}
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
-            // Removed conditional class since only "posting" style is used
-            // className={
-            //   cardType === "posting"
-            //     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
-            //     : "space-y-4"
-            // }
-          >
-            {jobs.map((job) => (
-              <JobPostingCard key={job.id} job={job} onViewDetails={() => handleJobSelect(job)} />
-            ))}
+          {/* Jobs Content */}
+          {viewType === "cards" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {jobs.map((job) => (
+                <JobPostingCard key={job.id} job={job} onViewDetails={() => handleJobSelect(job)} />
+              ))}
 
-            {/* Loading Skeletons */}
-            {loading && jobs.length === 0 && (
-              // Apply the grid classes directly to the skeletons or their immediate parent
-              // Each skeleton item will then respect the grid columns
-              <>
-                {" "}
-                {/* Use a fragment or an appropriate div if you need a wrapper */}
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
-                    <div className="space-y-3">
-                      <Skeleton className="h-6 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                      <div className="flex gap-2">
-                        <Skeleton className="h-6 w-16" />
-                        <Skeleton className="h-6 w-20" />
-                        <Skeleton className="h-6 w-24" />
+              {/* Loading Skeletons */}
+              {loading && jobs.length === 0 && (
+                <>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="bg-background/50 backdrop-blur-[24px] border border-border rounded-lg p-6">
+                      <div className="space-y-3">
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <div className="flex gap-2">
+                          <Skeleton className="h-6 w-16" />
+                          <Skeleton className="h-6 w-20" />
+                          <Skeleton className="h-6 w-24" />
+                        </div>
+                        <Skeleton className="h-16 w-full" />
                       </div>
-                      <Skeleton className="h-16 w-full" />
                     </div>
-                  </div>
-                ))}
-              </>
-            )}
+                  ))}
+                </>
+              )}
+            </div>
+          ) : (
+            <JobDataTable
+              jobs={jobs}
+              onJobSelect={handleJobSelect}
+              loading={loading && jobs.length === 0}
+              externalSorting={true}
+            />
+          )}
 
-            {/* Empty State */}
-            {!loading && jobs.length === 0 && !error && (
-              <div className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium mb-2">No jobs found</h3>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your search criteria or filters to find more opportunities.
-                </p>
-                <Button onClick={() => fetchJobs(1, true)} variant="outline">
-                  Refresh Results
-                </Button>
+          {/* Empty State */}
+          {!loading && jobs.length === 0 && !error && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="h-12 w-12 text-muted-foreground" />
               </div>
-            )}
+              <h3 className="text-lg font-medium mb-2">No jobs found</h3>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your search criteria or filters to find more opportunities.
+              </p>
+              <Button onClick={() => fetchJobs(1, true)} variant="outline">
+                Refresh Results
+              </Button>
+            </div>
+          )}
 
-            {/* Load More Button */}
-            {hasMore && !loading && (
-              <div className="flex justify-center pt-6">
-                <Button onClick={handleLoadMore} variant="outline" size="lg">
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Loading...
-                    </>
-                  ) : (
-                    "Load More Jobs"
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
+          {/* Load More Button - Only show for cards view */}
+          {viewType === "cards" && hasMore && !loading && (
+            <div className="flex justify-center pt-6">
+              <Button onClick={handleLoadMore} variant="outline" size="lg">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More Jobs"
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
