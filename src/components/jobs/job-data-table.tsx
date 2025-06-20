@@ -380,6 +380,16 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
       pagination: {
         pageSize: 10,
       },
+      sorting: [
+        {
+          id: "relevance_score",
+          desc: true, // Higher relevance scores first
+        },
+        {
+          id: "date_posted",
+          desc: true, // Then newest posts first
+        },
+      ],
     },
   })
 
@@ -396,6 +406,13 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
 
   return (
     <div className="space-y-4">
+      {/* Moved the column toggle to the top right */}
+      <div className="flex items-center justify-end px-4">
+        {" "}
+        {/* Added px-4 for horizontal padding */}
+        <JobDataTableColumnToggle table={table} />
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -447,10 +464,8 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
 
       {/* Pagination and Controls */}
       <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="flex items-center space-x-2">
-          <JobDataTableColumnToggle table={table} />
-          <p className="text-sm text-muted-foreground">{table.getFilteredRowModel().rows.length} job(s) total</p>
-        </div>
+        {/* Removed JobDataTableColumnToggle from here */}
+        <p className="text-sm text-muted-foreground"></p>
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">
             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}

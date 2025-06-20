@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     const job_type = searchParams.get("job_type")
     const remote = searchParams.get("remote")
     const visa_sponsorship = searchParams.get("visa_sponsorship")
+    const hasSalary = searchParams.get("hasSalary")
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "20")
 
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
         { count: "exact" },
       )
       .order("relevance_score", { ascending: false })
-      .order("created_at", { ascending: false })
+      .order("date_posted", { ascending: false })
       .range(offset, offset + limit - 1)
 
     // Apply filters
@@ -70,6 +71,10 @@ export async function GET(request: Request) {
 
     if (visa_sponsorship === "true") {
       query = query.eq("visa_sponsorship", true)
+    }
+
+    if (hasSalary === "true") {
+      query = query.or("min_salary.not.is.null,max_salary.not.is.null")
     }
 
     // Execute query

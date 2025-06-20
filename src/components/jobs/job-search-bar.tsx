@@ -20,6 +20,7 @@ interface JobSearchBarProps {
 
 export interface JobFilters {
   remote?: boolean
+  hasSalary?: boolean
 }
 
 interface JobConstants {
@@ -242,6 +243,11 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
     setFilters(newFilters)
   }
 
+  const handleSalaryFilterChange = (value: boolean) => {
+    const newFilters = { ...filters, hasSalary: value || undefined }
+    setFilters(newFilters)
+  }
+
   const clearJobRole = () => setJobRole("all")
   const clearPrimaryProduct = () => setPrimaryProduct("all")
   const clearLocationCountry = () => setLocationCountry("all")
@@ -249,6 +255,12 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
   const clearRemoteFilter = () => {
     const newFilters = { ...filters }
     delete newFilters.remote
+    setFilters(newFilters)
+  }
+
+  const clearSalaryFilter = () => {
+    const newFilters = { ...filters }
+    delete newFilters.hasSalary
     setFilters(newFilters)
   }
 
@@ -285,7 +297,8 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
       isFilterActive(primaryProduct) ||
       isFilterActive(locationCountry) ||
       isFilterActive(jobType) ||
-      isBooleanFilterActive(filters.remote)
+      isBooleanFilterActive(filters.remote) ||
+      isBooleanFilterActive(filters.hasSalary)
     )
   }
 
@@ -370,6 +383,24 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
           <Button variant={isBooleanFilterActive(filters.remote) ? "default" : "outline"} size="sm" className="h-10">
             Remote Work
             {isBooleanFilterActive(filters.remote) && (
+              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
+                1
+              </Badge>
+            )}
+          </Button>
+        </BooleanFilterDialog>
+
+        {/* Salary Filter */}
+        <BooleanFilterDialog
+          title="Salary"
+          description="Show only positions with salary"
+          currentValue={filters.hasSalary || false}
+          onApply={handleSalaryFilterChange}
+          onClear={clearSalaryFilter}
+        >
+          <Button variant={isBooleanFilterActive(filters.hasSalary) ? "default" : "outline"} size="sm" className="h-10">
+            Salary
+            {isBooleanFilterActive(filters.hasSalary) && (
               <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
                 1
               </Badge>
