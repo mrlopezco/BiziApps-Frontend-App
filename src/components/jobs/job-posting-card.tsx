@@ -2,11 +2,11 @@ import { JobWithInteraction } from "@/lib/types/jobs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark, ArrowRight } from "lucide-react"
+import { Bookmark, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { useState, useTransition } from "react"
-import { toggleJobBookmark } from "@/lib/actions/job-interactions"
+import { toggleJobBookmark, toggleJobHidden } from "@/lib/actions/job-interactions"
 import Flag from "react-world-flags" // Import the Flag component
 
 interface JobPostingCardProps {
@@ -173,8 +173,10 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
   const [isPending, startTransition] = useTransition()
 
   const [localBookmarkState, setLocalBookmarkState] = useState(job.user_interaction?.is_favorite ?? false)
+  const [localHiddenState, setLocalHiddenState] = useState(job.user_interaction?.is_hidden ?? false)
 
   const isBookmarked = localBookmarkState
+  const isHidden = localHiddenState
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -187,6 +189,21 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
 
       if (!result.success) {
         setLocalBookmarkState(localBookmarkState)
+      }
+    })
+  }
+
+  const handleHideClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    const newHiddenState = !localHiddenState
+    setLocalHiddenState(newHiddenState)
+
+    startTransition(async () => {
+      const result = await toggleJobHidden(job.id)
+
+      if (!result.success) {
+        setLocalHiddenState(localHiddenState)
       }
     })
   }
@@ -286,11 +303,24 @@ export function JobPostingCard({ job, onViewDetails }: JobPostingCardProps) {
                 onClick={handleBookmarkClick}
                 disabled={isPending}
                 className={cn(
-                  "h-7 w-7 p-0 hover:bg-muted transition-colors",
+                  "h-7 w-7 p-0 mr-1 hover:bg-muted transition-colors",
                   isBookmarked && "bg-green-500 text-white hover:bg-green-600",
                 )}
               >
                 <Bookmark className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleHideClick}
+                disabled={isPending}
+                className={cn(
+                  "h-7 w-7 p-0 hover:bg-muted transition-colors",
+                  isHidden && "bg-red-500 text-white hover:bg-red-600",
+                )}
+              >
+                {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </Button>
             </div>
           </div>

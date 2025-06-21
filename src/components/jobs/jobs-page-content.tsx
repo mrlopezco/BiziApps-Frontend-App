@@ -10,10 +10,8 @@ import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Job, JobSearchResponse } from "@/lib/types/jobs"
-import { UserProfile } from "@/lib/database.types"
 
 interface JobsPageContentProps {
-  profile: UserProfile | null
   searchParams: {
     job_role: string
     primary_product: string

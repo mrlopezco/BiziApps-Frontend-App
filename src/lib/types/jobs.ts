@@ -92,6 +92,7 @@ export interface UserJobInteraction {
   job_id: string
   is_favorite: boolean
   is_not_interested: boolean
+  is_hidden: boolean
   vote_type: VoteType | null
   vote_reason: string | null
   notes: string | null
@@ -107,6 +108,7 @@ export interface CreateJobInteractionParams {
   job_id: string
   is_favorite?: boolean
   is_not_interested?: boolean
+  is_hidden?: boolean
   vote_type?: VoteType | null
   vote_reason?: string | null
   notes?: string | null

@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Bookmark, Search } from "lucide-react"
+import { Home, Bookmark, Search, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils" // Assuming you have this utility for classnames
@@ -20,6 +20,11 @@ const sidebarItems = [
     title: "Bookmarks",
     icon: <Bookmark className="h-5 w-5" />,
     href: "/me/bookmarks",
+  },
+  {
+    title: "Hidden Jobs",
+    icon: <EyeOff className="h-5 w-5" />,
+    href: "/me/hidden-jobs",
   },
   // {
   //   title: "Subscriptions",

@@ -13,7 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal, ExternalLink, Bookmark, Eye } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, ExternalLink, Bookmark, Eye, EyeOff } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,7 +27,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { JobWithInteraction } from "@/lib/types/jobs"
 import { formatDistance } from "date-fns"
-import { toggleJobBookmark } from "@/lib/actions/job-interactions"
+import { toggleJobBookmark, toggleJobHidden } from "@/lib/actions/job-interactions"
 import { useTransition, useEffect } from "react"
 import Flag from "react-world-flags"
 import { JobDataTableColumnToggle } from "./job-data-table-column-toggle"
@@ -111,6 +111,14 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
 
     startTransition(async () => {
       await toggleJobBookmark(job.id)
+    })
+  }
+
+  const handleHideToggle = async (job: JobWithInteraction, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    startTransition(async () => {
+      await toggleJobHidden(job.id)
     })
   }
 
@@ -318,6 +326,7 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
       cell: ({ row }) => {
         const job = row.original
         const isBookmarked = job.user_interaction?.is_favorite || false
+        const isHidden = job.user_interaction?.is_hidden || false
 
         return (
           <div className="flex items-center gap-1">
@@ -329,6 +338,16 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
               disabled={isPending}
             >
               <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current text-yellow-500" : ""}`} />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={(e) => handleHideToggle(job, e)}
+              disabled={isPending}
+            >
+              {isHidden ? <EyeOff className="h-4 w-4 text-red-500" /> : <Eye className="h-4 w-4" />}
             </Button>
 
             <DropdownMenu>
@@ -357,7 +376,7 @@ export function JobDataTable({ jobs, onJobSelect, loading = false, externalSorti
           </div>
         )
       },
-      size: 100,
+      size: 120,
     },
   ]
 

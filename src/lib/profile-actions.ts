@@ -113,11 +113,11 @@ export async function updateProfile(formData: FormData) {
 
   if (updateError) {
     console.error("Failed to update profile:", updateError)
-    redirect("/dashboard/profile?error=" + encodeURIComponent("Failed to update profile. Please try again."))
+    redirect("/me/settings?error=" + encodeURIComponent("Failed to update profile. Please try again."))
   }
 
-  revalidatePath("/dashboard/profile")
-  redirect("/dashboard/profile?success=true")
+  revalidatePath("/me/settings")
+  redirect("/me/settings?success=true")
 }
 
 export async function updateProfileFromOAuth() {

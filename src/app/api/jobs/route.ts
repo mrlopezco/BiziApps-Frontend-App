@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
 import { JobSearchResponse, JobWithInteraction } from "@/lib/types/jobs"
 import { getUserJobInteractions } from "@/lib/actions/job-interactions"
+import { getProfile } from "@/lib/profile-actions"
 
 export async function GET(request: Request) {
   try {
@@ -15,6 +16,10 @@ export async function GET(request: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    // Get user profile to check hide_hidden_jobs preference
+    const profile = await getProfile()
+    const hideHiddenJobs = profile?.hide_hidden_jobs ?? true // Default to true
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -78,7 +83,7 @@ export async function GET(request: Request) {
     }
 
     // Execute query
-    const { data: jobs, count, error } = await query
+    const { data: jobs, error } = await query
 
     if (error) {
       console.error("Error fetching jobs:", error)
@@ -90,12 +95,17 @@ export async function GET(request: Request) {
     const userInteractions = await getUserJobInteractions(jobIds)
 
     // Combine jobs with user interactions
-    const jobsWithInteractions: JobWithInteraction[] = (jobs || []).map((job) => ({
+    let jobsWithInteractions: JobWithInteraction[] = (jobs || []).map((job) => ({
       ...job,
       user_interaction: userInteractions[job.id] || null,
     }))
 
-    const total = count || 0
+    // Filter out hidden jobs if user preference is set to hide them
+    if (hideHiddenJobs) {
+      jobsWithInteractions = jobsWithInteractions.filter((job) => !job.user_interaction?.is_hidden)
+    }
+
+    const total = jobsWithInteractions.length // Update total count after filtering
     const hasMore = offset + limit < total
 
     const response: JobSearchResponse = {

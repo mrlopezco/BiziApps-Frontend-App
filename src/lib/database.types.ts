@@ -18,6 +18,7 @@ export interface UserProfile {
   avatar: string | null
   job_roles: JobRole[]
   primary_products: PrimaryProduct[]
+  hide_hidden_jobs: boolean
   created_at: string
   updated_at: string
 }

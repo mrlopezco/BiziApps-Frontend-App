@@ -3,13 +3,25 @@ import { Dialog } from "@/components/ui/dialog"
 import { JobCardDialogContent } from "@/components/ui/dialog" // Using the custom variant
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark, ExternalLink, MapPin, Calendar, Clock, DollarSign, Globe, ThumbsUp, ThumbsDown } from "lucide-react" // Removed ChevronDown, ChevronUp
+import {
+  Bookmark,
+  ExternalLink,
+  MapPin,
+  Calendar,
+  Clock,
+  DollarSign,
+  Globe,
+  ThumbsUp,
+  ThumbsDown,
+  Eye,
+  EyeOff,
+} from "lucide-react" // Removed ChevronDown, ChevronUp
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useState, useTransition, useEffect } from "react"
-import { toggleJobBookmark, voteOnJob } from "@/lib/actions/job-interactions"
+import { toggleJobBookmark, voteOnJob, toggleJobHidden } from "@/lib/actions/job-interactions"
 
 interface JobDetailsDialogProps {
   job: JobWithInteraction | null
@@ -22,10 +34,12 @@ export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogPr
 
   // Local state for optimistic updates
   const [localBookmarkState, setLocalBookmarkState] = useState(job?.user_interaction?.is_favorite ?? false)
+  const [localHiddenState, setLocalHiddenState] = useState(job?.user_interaction?.is_hidden ?? false)
   const [hasApplied, setHasApplied] = useState(false)
   const [userVote, setUserVote] = useState<"upvote" | "downvote" | null>(job?.user_interaction?.vote_type ?? null)
 
   const isBookmarked = localBookmarkState
+  const isHidden = localHiddenState
 
   // Reset hasApplied state when dialog opens
   useEffect(() => {
@@ -52,6 +66,26 @@ export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogPr
       }
     })
   }
+
+  const handleHideClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!job) return
+
+    // Optimistically update the UI
+    const newHiddenState = !localHiddenState
+    setLocalHiddenState(newHiddenState)
+
+    startTransition(async () => {
+      const result = await toggleJobHidden(job.id)
+
+      if (!result.success) {
+        // Revert the optimistic update if the server action failed
+        setLocalHiddenState(localHiddenState)
+      }
+    })
+  }
+
   // Removed: const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
   // Removed: useEffect to reset expanded state
 
@@ -282,11 +316,24 @@ export function JobDetailsDialog({ job, open, onOpenChange }: JobDetailsDialogPr
                 onClick={handleBookmarkClick}
                 disabled={isPending}
                 className={cn(
-                  "h-10 w-10 p-0 mr-10 hover:bg-muted transition-colors",
+                  "h-10 w-10 p-0 mr-2 hover:bg-muted transition-colors",
                   isBookmarked && "bg-green-500 text-white hover:bg-green-600",
                 )}
               >
                 <Bookmark className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleHideClick}
+                disabled={isPending}
+                className={cn(
+                  "h-10 w-10 p-0 mr-10 hover:bg-muted transition-colors",
+                  isHidden && "bg-red-500 text-white hover:bg-red-600",
+                )}
+              >
+                {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </Button>
             </div>
 

@@ -44,6 +44,7 @@ export async function getOrCreateJobInteraction(jobId: string): Promise<UserJobI
       job_id: jobId,
       is_favorite: false,
       is_not_interested: false,
+      is_hidden: false,
       vote_type: null,
       vote_reason: null,
       notes: null,
@@ -128,6 +129,49 @@ export async function markJobAsNotInterested(jobId: string): Promise<{ success: 
   } catch (error) {
     console.error("Error marking as not interested:", error)
     return { success: false }
+  }
+}
+
+/**
+ * Toggle hidden status for a job
+ */
+export async function toggleJobHidden(jobId: string): Promise<{ success: boolean; is_hidden: boolean }> {
+  try {
+    await validateUserSession()
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("User not authenticated")
+    }
+
+    // Get or create the interaction
+    const interaction = await getOrCreateJobInteraction(jobId)
+
+    // Toggle the hidden status
+    const newHiddenStatus = !interaction.is_hidden
+
+    const { error } = await supabase
+      .from("user_job_interactions")
+      .update({
+        is_hidden: newHiddenStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", interaction.id)
+
+    if (error) {
+      throw new Error(`Failed to update hidden status: ${error.message}`)
+    }
+
+    // Revalidate relevant pages
+    revalidatePath("/jobs")
+
+    return { success: true, is_hidden: newHiddenStatus }
+  } catch (error) {
+    console.error("Error toggling hidden status:", error)
+    return { success: false, is_hidden: false }
   }
 }
 
@@ -241,6 +285,7 @@ export async function getUserBookmarkedJobs(page = 1, limit = 20) {
           job_id: interaction.job_id,
           is_favorite: interaction.is_favorite,
           is_not_interested: interaction.is_not_interested,
+          is_hidden: interaction.is_hidden,
           vote_type: interaction.vote_type,
           vote_reason: interaction.vote_reason,
           notes: interaction.notes,
@@ -261,6 +306,78 @@ export async function getUserBookmarkedJobs(page = 1, limit = 20) {
     }
   } catch (error) {
     console.error("Error fetching bookmarked jobs:", error)
+    throw error
+  }
+}
+
+/**
+ * Get user's hidden jobs
+ */
+export async function getUserHiddenJobs(page = 1, limit = 20) {
+  try {
+    await validateUserSession()
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("User not authenticated")
+    }
+
+    const offset = (page - 1) * limit
+
+    const { data, count, error } = await supabase
+      .from("user_job_interactions")
+      .select(
+        `
+        *,
+        transformed_jobs (
+          *,
+          company:transformed_companies(*)
+        )
+      `,
+        { count: "exact" },
+      )
+      .eq("user_id", user.id)
+      .eq("is_hidden", true)
+      .order("updated_at", { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (error) {
+      throw new Error(`Failed to fetch hidden jobs: ${error.message}`)
+    }
+
+    const jobs =
+      data?.map((interaction) => ({
+        ...interaction.transformed_jobs,
+        user_interaction: {
+          id: interaction.id,
+          user_id: interaction.user_id,
+          job_id: interaction.job_id,
+          is_favorite: interaction.is_favorite,
+          is_not_interested: interaction.is_not_interested,
+          is_hidden: interaction.is_hidden,
+          vote_type: interaction.vote_type,
+          vote_reason: interaction.vote_reason,
+          notes: interaction.notes,
+          created_at: interaction.created_at,
+          updated_at: interaction.updated_at,
+        },
+      })) || []
+
+    const total = count || 0
+    const hasMore = offset + limit < total
+
+    return {
+      jobs,
+      total,
+      hasMore,
+      page,
+      limit,
+    }
+  } catch (error) {
+    console.error("Error fetching hidden jobs:", error)
     throw error
   }
 }
@@ -301,5 +418,44 @@ export async function getUserJobInteractions(jobIds: string[]): Promise<Record<s
   } catch (error) {
     console.error("Error fetching user interactions:", error)
     return {}
+  }
+}
+
+/**
+ * Update hide hidden jobs preference
+ */
+export async function updateHideHiddenJobsPreference(hideHiddenJobs: boolean): Promise<{ success: boolean }> {
+  try {
+    await validateUserSession()
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error("User not authenticated")
+    }
+
+    const { error } = await supabase
+      .from("user_profiles")
+      .update({
+        hide_hidden_jobs: hideHiddenJobs,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id)
+
+    if (error) {
+      throw new Error(`Failed to update preference: ${error.message}`)
+    }
+
+    // Revalidate pages that might be affected
+    revalidatePath("/jobs")
+    revalidatePath("/me/settings")
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating hide hidden jobs preference:", error)
+    return { success: false }
   }
 }

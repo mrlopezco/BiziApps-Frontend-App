@@ -2,7 +2,10 @@
 
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { Loader2, Save } from "lucide-react"
+import { useState, useTransition } from "react"
+import { updateHideHiddenJobsPreference } from "@/lib/actions/job-interactions"
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -24,4 +27,22 @@ function SubmitButton() {
   )
 }
 
-export { SubmitButton }
+interface HideHiddenJobsToggleProps {
+  defaultChecked: boolean
+}
+
+function HideHiddenJobsToggle({ defaultChecked }: HideHiddenJobsToggleProps) {
+  const [checked, setChecked] = useState(defaultChecked)
+  const [isPending, startTransition] = useTransition()
+
+  const handleChange = (newChecked: boolean) => {
+    setChecked(newChecked)
+    startTransition(async () => {
+      await updateHideHiddenJobsPreference(newChecked)
+    })
+  }
+
+  return <Switch id="hideHiddenJobs" checked={checked} onCheckedChange={handleChange} disabled={isPending} />
+}
+
+export { SubmitButton, HideHiddenJobsToggle }

@@ -6,7 +6,7 @@ import { User } from "@supabase/supabase-js"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { LogoutButton } from "@/components/layout/logout-button"
-import { User as UserIcon, Briefcase, Home, LogOut, Bookmark, Search } from "lucide-react"
+import { UserIcon, Briefcase, Home, LogOut, Bookmark, Search, EyeOff } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,6 +100,12 @@ export default function Header({ data }: Props) {
                   <Link href="/me/saved-searches" className="flex items-center">
                     <Search className="mr-2 h-4 w-4" />
                     Saved Searches
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/me/hidden-jobs" className="flex items-center">
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    Hidden Jobs
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

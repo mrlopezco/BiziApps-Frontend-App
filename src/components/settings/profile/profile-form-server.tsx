@@ -1,10 +1,10 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, AlertTriangle } from "lucide-react"
+import { User, AlertTriangle, Settings } from "lucide-react"
 import { UserProfile } from "@/lib/database.types"
 import { updateProfile } from "@/lib/profile-actions"
-import { SubmitButton } from "./profile-form-client"
+import { SubmitButton, HideHiddenJobsToggle } from "./profile-form-client"
 import { ProfileMessages } from "./profile-messages"
 import { DeleteAccountDialog } from "./delete-account-dialog"
 import { Suspense } from "react"
@@ -90,6 +90,36 @@ export function ProfileFormServer({ profile }: ProfileFormServerProps) {
                 placeholder="Tell us a bit about yourself..."
                 className="flex min-h-[100px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Job Preferences Card */}
+        <Card className="bg-background/50 backdrop-blur-[24px] border-border p-6">
+          <CardHeader className="p-0 space-y-0">
+            <CardTitle className="flex justify-between items-center pb-6 border-border border-b">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-[#4B4F4F]" />
+                  <span className="text-xl font-medium">Job Preferences</span>
+                </div>
+                <span className="text-base leading-4 text-secondary">Manage your job search preferences</span>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="hideHiddenJobs" className="text-base leading-4 font-medium">
+                    Hide Hidden Jobs
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    When enabled, jobs you&apos;ve hidden will not appear in search results
+                  </p>
+                </div>
+                <HideHiddenJobsToggle defaultChecked={profile?.hide_hidden_jobs ?? true} />
+              </div>
             </div>
           </CardContent>
         </Card>

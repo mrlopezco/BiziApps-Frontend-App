@@ -73,7 +73,6 @@ export function JobsPageLayout({ profile }: JobsPageLayoutProps) {
       {/* Jobs Content */}
       <div className="container-main px-4 md:px-6 py-8 text-black">
         <JobsPageContent
-          profile={profile}
           searchParams={searchParams}
           filters={filters}
           onSearch={handleSearch}
