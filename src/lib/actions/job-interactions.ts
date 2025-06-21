@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { validateUserSession } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
-import { UserJobInteraction } from "@/lib/types/jobs"
+import { UserJobInteraction, KanbanStatus } from "@/lib/types/jobs"
 
 /**
  * Get or create a user's job interaction record
@@ -48,6 +48,7 @@ export async function getOrCreateJobInteraction(jobId: string): Promise<UserJobI
       vote_type: null,
       vote_reason: null,
       notes: null,
+      kanban_status: "bookmarked",
     })
     .select()
     .single()
@@ -84,6 +85,7 @@ export async function toggleJobBookmark(jobId: string): Promise<{ success: boole
       .from("user_job_interactions")
       .update({
         is_favorite: newFavoriteStatus,
+        kanban_status: newFavoriteStatus ? "bookmarked" : interaction.kanban_status,
         updated_at: new Date().toISOString(),
       })
       .eq("id", interaction.id)
@@ -94,7 +96,8 @@ export async function toggleJobBookmark(jobId: string): Promise<{ success: boole
 
     // Revalidate relevant pages
     revalidatePath("/jobs")
-    revalidatePath("/dashboard/bookmarks")
+    revalidatePath("/me/bookmarks")
+    revalidatePath("/me/kanbanboard")
 
     return { success: true, is_favorite: newFavoriteStatus }
   } catch (error) {
@@ -125,6 +128,7 @@ export async function markJobAsNotInterested(jobId: string): Promise<{ success: 
     }
 
     revalidatePath("/jobs")
+    revalidatePath("/me/kanbanboard")
     return { success: true }
   } catch (error) {
     console.error("Error marking as not interested:", error)
@@ -202,6 +206,7 @@ export async function voteOnJob(
     }
 
     revalidatePath("/jobs")
+    revalidatePath("/me/kanbanboard")
     return { success: true }
   } catch (error) {
     console.error("Error recording vote:", error)
@@ -231,6 +236,7 @@ export async function updateJobNotes(jobId: string, notes: string): Promise<{ su
     }
 
     revalidatePath("/jobs")
+    revalidatePath("/me/kanbanboard")
     return { success: true }
   } catch (error) {
     console.error("Error updating notes:", error)
@@ -289,6 +295,7 @@ export async function getUserBookmarkedJobs(page = 1, limit = 20) {
           vote_type: interaction.vote_type,
           vote_reason: interaction.vote_reason,
           notes: interaction.notes,
+          kanban_status: interaction.kanban_status,
           created_at: interaction.created_at,
           updated_at: interaction.updated_at,
         },
@@ -361,6 +368,7 @@ export async function getUserHiddenJobs(page = 1, limit = 20) {
           vote_type: interaction.vote_type,
           vote_reason: interaction.vote_reason,
           notes: interaction.notes,
+          kanban_status: interaction.kanban_status,
           created_at: interaction.created_at,
           updated_at: interaction.updated_at,
         },
@@ -418,6 +426,105 @@ export async function getUserJobInteractions(jobIds: string[]): Promise<Record<s
   } catch (error) {
     console.error("Error fetching user interactions:", error)
     return {}
+  }
+}
+
+/**
+ * Update kanban status for a job
+ */
+export async function updateJobKanbanStatus(jobId: string, kanbanStatus: KanbanStatus): Promise<{ success: boolean }> {
+  try {
+    await validateUserSession()
+    const interaction = await getOrCreateJobInteraction(jobId)
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from("user_job_interactions")
+      .update({
+        kanban_status: kanbanStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", interaction.id)
+
+    if (error) {
+      throw new Error(`Failed to update kanban status: ${error.message}`)
+    }
+
+    revalidatePath("/me/kanbanboard")
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating kanban status:", error)
+    return { success: false }
+  }
+}
+
+/**
+ * Get jobs for kanban board grouped by status
+ */
+export async function getKanbanJobs() {
+  try {
+    await validateUserSession()
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("User not authenticated")
+    }
+
+    const { data, error } = await supabase
+      .from("user_job_interactions")
+      .select(
+        `
+        *,
+        transformed_jobs (
+          *,
+          company:transformed_companies(*)
+        )
+      `,
+      )
+      .eq("user_id", user.id)
+      .or("is_favorite.eq.true,kanban_status.neq.bookmarked")
+      .order("updated_at", { ascending: false })
+
+    if (error) {
+      throw new Error(`Failed to fetch kanban jobs: ${error.message}`)
+    }
+
+    const jobs =
+      data?.map((interaction) => ({
+        ...interaction.transformed_jobs,
+        user_interaction: {
+          id: interaction.id,
+          user_id: interaction.user_id,
+          job_id: interaction.job_id,
+          is_favorite: interaction.is_favorite,
+          is_not_interested: interaction.is_not_interested,
+          is_hidden: interaction.is_hidden,
+          vote_type: interaction.vote_type,
+          vote_reason: interaction.vote_reason,
+          notes: interaction.notes,
+          kanban_status: interaction.kanban_status,
+          created_at: interaction.created_at,
+          updated_at: interaction.updated_at,
+        },
+      })) || []
+
+    // Group jobs by kanban status
+    const groupedJobs = {
+      bookmarked: jobs.filter(
+        (job) => job.user_interaction?.is_favorite && job.user_interaction?.kanban_status === "bookmarked",
+      ),
+      considering: jobs.filter((job) => job.user_interaction?.kanban_status === "considering"),
+      in_progress: jobs.filter((job) => job.user_interaction?.kanban_status === "in_progress"),
+      rejected: jobs.filter((job) => job.user_interaction?.kanban_status === "rejected"),
+    }
+
+    return groupedJobs
+  } catch (error) {
+    console.error("Error fetching kanban jobs:", error)
+    throw error
   }
 }
 

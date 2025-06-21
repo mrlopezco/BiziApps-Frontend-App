@@ -85,6 +85,7 @@ export const COUNTRIES = [
 
 // User job interaction types
 export type VoteType = "upvote" | "downvote"
+export type KanbanStatus = "bookmarked" | "considering" | "in_progress" | "rejected"
 
 export interface UserJobInteraction {
   id: string
@@ -96,6 +97,7 @@ export interface UserJobInteraction {
   vote_type: VoteType | null
   vote_reason: string | null
   notes: string | null
+  kanban_status: KanbanStatus
   created_at: string
   updated_at: string
 }
@@ -112,6 +114,7 @@ export interface CreateJobInteractionParams {
   vote_type?: VoteType | null
   vote_reason?: string | null
   notes?: string | null
+  kanban_status?: KanbanStatus | null
 }
 
 export interface UpdateJobInteractionParams extends Partial<CreateJobInteractionParams> {
