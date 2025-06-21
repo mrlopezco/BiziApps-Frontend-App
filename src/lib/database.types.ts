@@ -21,3 +21,19 @@ export interface UserProfile {
   created_at: string
   updated_at: string
 }
+
+export interface SavedSearch {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  job_role: string | null
+  primary_product: string | null
+  location_country: string | null
+  job_type: string | null
+  remote: boolean | null
+  has_salary: boolean | null
+  created_at: string
+  updated_at: string
+  last_used_at: string
+}

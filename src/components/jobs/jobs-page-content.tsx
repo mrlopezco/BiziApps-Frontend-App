@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { JobFilters as JobFiltersType } from "./job-search-bar" // Ensure JobFiltersType includes visaSponsorship
 import { JobDetailsDialog } from "./job-details-dialog"
 import { JobDataTable } from "./job-data-table"
+import { SaveSearchDialog } from "./save-search-dialog"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -133,7 +134,9 @@ export function JobsPageContent({ searchParams, filters }: JobsPageContentProps)
                     <p className="">{loading ? "Loading..." : `${total}`}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2"> </div>
+                <div className="flex items-center gap-2">
+                  <SaveSearchDialog searchParams={searchParams} filters={filters} />
+                </div>
               </div>
             </div>
           </div>

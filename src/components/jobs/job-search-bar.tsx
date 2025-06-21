@@ -16,6 +16,12 @@ interface JobSearchBarProps {
   onSearch: (params: { job_role: string; primary_product: string; location_country: string; job_type: string }) => void
   onFiltersChange: (filters: JobFilters) => void
   appliedFilters: JobFilters
+  initialSearchParams?: {
+    job_role: string
+    primary_product: string
+    location_country: string
+    job_type: string
+  }
 }
 
 export interface JobFilters {
@@ -157,15 +163,27 @@ function BooleanFilterDialog({
   )
 }
 
-export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilters }: JobSearchBarProps) {
-  const [jobRole, setJobRole] = useState<string>("all")
-  const [primaryProduct, setPrimaryProduct] = useState<string>("all")
-  const [locationCountry, setLocationCountry] = useState<string>("all")
-  const [jobType, setJobType] = useState<string>("all")
+export function JobSearchBar({
+  profile,
+  onSearch,
+  onFiltersChange,
+  appliedFilters,
+  initialSearchParams,
+}: JobSearchBarProps) {
+  const [jobRole, setJobRole] = useState<string>(initialSearchParams?.job_role || "all")
+  const [primaryProduct, setPrimaryProduct] = useState<string>(initialSearchParams?.primary_product || "all")
+  const [locationCountry, setLocationCountry] = useState<string>(initialSearchParams?.location_country || "all")
+  const [jobType, setJobType] = useState<string>(initialSearchParams?.job_type || "all")
   const [filters, setFilters] = useState<JobFilters>(appliedFilters)
+
+  // Update filters when appliedFilters change (from URL parameters)
+  useEffect(() => {
+    setFilters(appliedFilters)
+  }, [appliedFilters])
   const [constants, setConstants] = useState<JobConstants | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileInitialized, setProfileInitialized] = useState(false)
+  const [urlParamsInitialized, setUrlParamsInitialized] = useState(false)
 
   // Load constants from cache/database
   useEffect(() => {
@@ -190,9 +208,23 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
     loadConstants()
   }, [])
 
-  // Initialize with profile defaults - only run once
+  // Initialize with URL parameters first (from saved searches), then profile defaults
   useEffect(() => {
-    if (!profileInitialized && profile) {
+    if (
+      initialSearchParams &&
+      (initialSearchParams.job_role !== "all" ||
+        initialSearchParams.primary_product !== "all" ||
+        initialSearchParams.location_country !== "all" ||
+        initialSearchParams.job_type !== "all")
+    ) {
+      // URL parameters present, use them
+      setJobRole(initialSearchParams.job_role)
+      setPrimaryProduct(initialSearchParams.primary_product)
+      setLocationCountry(initialSearchParams.location_country)
+      setJobType(initialSearchParams.job_type)
+      setUrlParamsInitialized(true)
+    } else if (!profileInitialized && !urlParamsInitialized && profile) {
+      // Only use profile defaults if no URL params were provided
       if (profile?.job_roles && profile.job_roles.length > 0) {
         setJobRole(profile.job_roles[0])
       }
@@ -201,7 +233,20 @@ export function JobSearchBar({ profile, onSearch, onFiltersChange, appliedFilter
       }
       setProfileInitialized(true)
     }
-  }, [profile, profileInitialized])
+  }, [profile, profileInitialized, initialSearchParams, urlParamsInitialized])
+
+  // Reset initialization flags when initialSearchParams change (for navigation from saved searches)
+  useEffect(() => {
+    if (
+      initialSearchParams &&
+      (initialSearchParams.job_role !== "all" ||
+        initialSearchParams.primary_product !== "all" ||
+        initialSearchParams.location_country !== "all" ||
+        initialSearchParams.job_type !== "all")
+    ) {
+      setUrlParamsInitialized(false)
+    }
+  }, [initialSearchParams])
 
   // Auto-execute search when filters change
   useEffect(() => {

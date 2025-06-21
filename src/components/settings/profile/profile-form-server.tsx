@@ -1,12 +1,11 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Briefcase, AlertTriangle } from "lucide-react"
+import { User, AlertTriangle } from "lucide-react"
 import { UserProfile } from "@/lib/database.types"
 import { updateProfile } from "@/lib/profile-actions"
 import { SubmitButton } from "./profile-form-client"
 import { ProfileMessages } from "./profile-messages"
-import { JobFieldsClient } from "./job-fields-client"
 import { DeleteAccountDialog } from "./delete-account-dialog"
 import { Suspense } from "react"
 
@@ -16,7 +15,7 @@ interface ProfileFormServerProps {
 
 export function ProfileFormServer({ profile }: ProfileFormServerProps) {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6">
       <Suspense fallback={null}>
         <ProfileMessages />
       </Suspense>
@@ -95,29 +94,8 @@ export function ProfileFormServer({ profile }: ProfileFormServerProps) {
           </CardContent>
         </Card>
 
-        {/* Professional Information Card */}
-        <Card className="bg-background/50 backdrop-blur-[24px] border-border p-6">
-          <CardHeader className="p-0 space-y-0">
-            <CardTitle className="flex justify-between items-center pb-6 border-border border-b">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-[#4B4F4F]" />
-                  <span className="text-xl font-medium">Professional Information</span>
-                </div>
-                <span className="text-base leading-4 text-secondary">Define your expertise and specializations</span>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 pt-6 flex gap-6 flex-col">
-            <JobFieldsClient
-              initialJobRoles={profile?.job_roles || []}
-              initialPrimaryProducts={profile?.primary_products || []}
-            />
-          </CardContent>
-        </Card>
-
         {/* Submit Button Card */}
-        <Card className="bg-background/50 backdrop-blur-[24px] border-border p-6 lg:col-span-2">
+        <Card className="bg-background/50 backdrop-blur-[24px] border-border p-6">
           <CardContent className="p-0">
             <SubmitButton />
           </CardContent>
@@ -125,7 +103,7 @@ export function ProfileFormServer({ profile }: ProfileFormServerProps) {
       </form>
 
       {/* Delete Account Card */}
-      <Card className="bg-background/50 backdrop-blur-[24px] border-border border-destructive/20 p-6 lg:col-span-2">
+      <Card className="bg-background/50 backdrop-blur-[24px] border-border border-destructive/20 p-6">
         <CardHeader className="p-0 space-y-0">
           <CardTitle className="flex justify-between items-center pb-6 border-border border-b">
             <div className="flex flex-col gap-2">

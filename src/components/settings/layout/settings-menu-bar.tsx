@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Bookmark } from "lucide-react"
+import { Home, Bookmark, Search } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils" // Assuming you have this utility for classnames
@@ -9,12 +9,17 @@ const sidebarItems = [
   {
     title: "Settings",
     icon: <Home className="h-5 w-5" />, // Reduced icon size for horizontal display
-    href: "/settings",
+    href: "/me",
+  },
+  {
+    title: "Saved Searches",
+    icon: <Search className="h-5 w-5" />,
+    href: "/me/saved-searches",
   },
   {
     title: "Bookmarks",
     icon: <Bookmark className="h-5 w-5" />,
-    href: "/settings/bookmarks",
+    href: "/me/bookmarks",
   },
   // {
   //   title: "Subscriptions",
@@ -39,10 +44,8 @@ export function SettingsMenuBar() {
             href={item.href}
             className={cn("flex items-center gap-2 px-3 py-2 rounded-md transition-colors hover:bg-muted", {
               "bg-primary text-primary-foreground":
-                item.href === "/dashboard" ? pathname === item.href : pathname.includes(item.href),
-              "text-muted-foreground": !(item.href === "/dashboard"
-                ? pathname === item.href
-                : pathname.includes(item.href)),
+                item.href === "/me" ? pathname === item.href : pathname.includes(item.href),
+              "text-muted-foreground": !(item.href === "/me" ? pathname === item.href : pathname.includes(item.href)),
             })}
           >
             {item.icon} {item.title}
