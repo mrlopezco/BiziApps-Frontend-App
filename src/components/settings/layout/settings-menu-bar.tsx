@@ -9,7 +9,7 @@ const sidebarItems = [
   {
     title: "Settings",
     icon: <Home className="h-5 w-5" />, // Reduced icon size for horizontal display
-    href: "/me",
+    href: "/me/settings",
   },
   {
     title: "Saved Searches",

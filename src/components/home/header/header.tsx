@@ -6,7 +6,7 @@ import { User } from "@supabase/supabase-js"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { LogoutButton } from "@/components/layout/logout-button"
-import { UserIcon, Briefcase, Home, LogOut, Bookmark, Search, EyeOff } from "lucide-react"
+import { UserIcon, Briefcase, Home, LogOut, Bookmark, Search, EyeOff, Kanban } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,12 +84,7 @@ export default function Header({ data }: Props) {
                   {data.user.email && <p className="text-xs leading-none text-muted-foreground">{data.user.email}</p>}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/me/settings" className="flex items-center">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
+
                 <DropdownMenuItem asChild>
                   <Link href="/me/bookmarks" className="flex items-center">
                     <Bookmark className="mr-2 h-4 w-4" />
@@ -103,12 +98,18 @@ export default function Header({ data }: Props) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/me/hidden-jobs" className="flex items-center">
-                    <EyeOff className="mr-2 h-4 w-4" />
-                    Hidden Jobs
+                  <Link href="/me/kanban-board" className="flex items-center">
+                    <Kanban className="mr-2 h-4 w-4" />
+                    Kanban Board
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/me/settings" className="flex items-center">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <LogoutButton>
                     <LogOut className="mr-2 h-4 w-4" />
